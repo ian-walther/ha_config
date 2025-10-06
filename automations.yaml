@@ -1,0 +1,1573 @@
+- id: '1695757854947'
+  alias: Bar Dial
+  description: ''
+  use_blueprint:
+    path: Ddemooij1984/philips_tap_dial_switch volume-and-actions.yaml
+    input:
+      remote: 8a4830f93e305039641fb53e5970cca0
+      turnwheel_left:
+      - action: media_player.volume_down
+        metadata: {}
+        data: {}
+        target:
+          entity_id: media_player.kitchen
+      button_1_press:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.main_floor
+      turnwheel_right:
+      - action: media_player.volume_up
+        metadata: {}
+        data: {}
+        target:
+          entity_id: media_player.kitchen
+      button_2_press:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.main_floor_ceiling
+      button_3_press:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.main_floor
+      button_4_press:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.main_floor_other
+- id: '1706041717555'
+  alias: Master Closet Door Open
+  description: ''
+  triggers:
+  - type: opened
+    device_id: 9278a6d9e5e487fb6de562de83ef351b
+    entity_id: 6917a1eb5e27b4bb13441d1eff01c32d
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      transition: 2
+    target:
+      entity_id: light.master_bedroom_closet_main_lights
+  mode: single
+- id: '1706041798549'
+  alias: Master Closet Door Close
+  description: ''
+  triggers:
+  - type: not_opened
+    device_id: 9278a6d9e5e487fb6de562de83ef351b
+    entity_id: 6917a1eb5e27b4bb13441d1eff01c32d
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data:
+      transition: 2
+    target:
+      entity_id: light.master_bedroom_closet_main_lights
+  mode: single
+- id: '1706104772625'
+  alias: Laundry Room Door Open
+  description: ''
+  triggers:
+  - type: opened
+    device_id: 15daf6cf79c3187efd662aea999aedd4
+    entity_id: ab4c600a970d244a816cf52e7e9e09c8
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      transition: 2
+      brightness_pct: 100
+    target:
+      entity_id: light.laundry_room_main_lights_2
+  mode: single
+- id: '1706104819985'
+  alias: Laundry Room Door Close
+  description: ''
+  triggers:
+  - type: not_opened
+    device_id: 15daf6cf79c3187efd662aea999aedd4
+    entity_id: ab4c600a970d244a816cf52e7e9e09c8
+    domain: binary_sensor
+    trigger: device
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data:
+      transition: 2
+    target:
+      entity_id: light.laundry_room_main_lights_2
+  mode: single
+- id: '1706126486116'
+  alias: Pantry Detect Motion
+  description: ''
+  trigger:
+  - type: motion
+    platform: device
+    device_id: 9eb7f9403abceef83b854526cfa818ba
+    entity_id: 19b21c01602285f47d2a21a9669f99d5
+    domain: binary_sensor
+  condition: []
+  action:
+  - service: light.turn_on
+    target:
+      device_id: b123c2faaefcd4193ccf2aac0222d516
+    data:
+      transition: 1
+      brightness_pct: 100
+  mode: single
+- id: '1706126553279'
+  alias: Pantry No Motion
+  description: ''
+  trigger:
+  - type: no_motion
+    platform: device
+    device_id: 9eb7f9403abceef83b854526cfa818ba
+    entity_id: 19b21c01602285f47d2a21a9669f99d5
+    domain: binary_sensor
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+  condition: []
+  action:
+  - service: light.turn_off
+    target:
+      device_id: b123c2faaefcd4193ccf2aac0222d516
+    data:
+      transition: 15
+  mode: single
+- id: '1706321787746'
+  alias: Kitchen Pico for Foyer control
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: 3c5f4d9080d5e13818a340a88c60b10c
+      auto_mode: single
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.foyer_lights
+      middle_stop: []
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.foyer_lights
+- id: '1708462477543'
+  alias: Foyer Pico For Kitchen
+  description: Foyer stairs light pico
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: 34d15a2e79557c74655c2e0e91e9cdbb
+      middle_stop: []
+      middle_stop_release:
+      - data: {}
+        action: script.garage_door_open
+      auto_mode: single
+      top_on:
+      - action: input_boolean.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.is_someone_home
+      bottom_off_release:
+      - action: input_boolean.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.is_someone_home
+- id: '1711919808041'
+  alias: Turn on front lights at sunset
+  description: ''
+  trigger:
+  - platform: sun
+    event: sunset
+  condition: []
+  action:
+  - service: light.turn_on
+    data: {}
+    target:
+      device_id: 2f970aa653280cdabd1610ca74ae6c5f
+  mode: single
+- id: '1711920192724'
+  alias: 'Turn off front lights at midnight '
+  description: ''
+  trigger:
+  - platform: time
+    at: 00:00:00
+  condition: []
+  action:
+  - service: light.turn_off
+    target:
+      device_id: 2f970aa653280cdabd1610ca74ae6c5f
+    data: {}
+  mode: single
+- id: '1727307760718'
+  alias: Master Bedroom Wall Switch
+  description: ''
+  use_blueprint:
+    path: sandervv/ZHA - Hue Dimmer Fully Configurable.yaml
+    input:
+      remote: 11bb8273f2cbcefd714dab18eaa8dbfb
+      button_on_short_press:
+      - action: input_boolean.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.is_master_bed_occupied
+      button_off_short_press:
+      - action: input_boolean.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.is_master_bed_occupied
+      button_up_short_press:
+      - action: script.set_morning
+        metadata: {}
+        data: {}
+      button_up_long_press: []
+      button_down_short_press:
+      - action: script.set_bed
+        metadata: {}
+        data: {}
+- id: '1733788301346'
+  alias: Power Room Door Open
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.powder_room_door_opening_3
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.powder_room_vanity_lights
+  mode: single
+- id: '1733788792385'
+  alias: Powder Room Empty
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.powder_room_occupancy_motion
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  conditions:
+  - type: is_not_open
+    condition: device
+    device_id: 60d2cf986e1817d228413aa18d9d459b
+    entity_id: 42c82d83185795360274eedc28f3384e
+    domain: binary_sensor
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data:
+      transition: 2
+    target:
+      entity_id: light.powder_room_vanity_lights
+  mode: single
+- id: '1733925685321'
+  alias: Turn Garage Space Heater 2 Off
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.garage_temperature
+    above: 70
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 5
+  conditions:
+  - condition: state
+    entity_id: input_boolean.auto_heat_garage
+    state: 'on'
+  actions:
+  - action: switch.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: switch.garage_space_heater_2
+  mode: single
+- id: '1733937101595'
+  alias: Is Someone Home
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.is_someone_home
+  conditions: []
+  actions:
+  - action: script.house_respond_to_change
+    metadata: {}
+    data: {}
+  mode: single
+- id: '1735518183626'
+  alias: Is Someone Home-Open Garage Door
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - cover.ratgdov25i_4b0ac1_door
+    from: closed
+    to: opening
+  conditions:
+  - condition: state
+    entity_id: input_boolean.is_someone_home
+    state: 'off'
+  actions:
+  - action: input_boolean.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.is_someone_home
+  mode: single
+- id: '1735518239572'
+  alias: Is Someone Home-Open Front Door
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.front_door_opening
+    from: 'off'
+    to: 'on'
+  conditions:
+  - condition: state
+    entity_id: input_boolean.is_someone_home
+    state: 'off'
+  actions:
+  - action: input_boolean.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.is_someone_home
+  mode: single
+- id: '1736096863127'
+  alias: Turn Garage Space Heater 1 Off
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.garage_temperature
+    above: 75
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 5
+  conditions:
+  - condition: state
+    entity_id: input_boolean.auto_heat_garage
+    state: 'on'
+  actions:
+  - action: switch.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: switch.garage_space_heater
+  mode: single
+- id: '1736097102789'
+  alias: Turn On Both Garage Space Heaters
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.garage_temperature
+    below: 65
+  conditions:
+  - condition: state
+    entity_id: input_boolean.auto_heat_garage
+    state: 'on'
+  actions:
+  - action: switch.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - switch.garage_space_heater
+      - switch.garage_space_heater_2
+  mode: single
+- id: '1736097951472'
+  alias: Turn Off Auto Heat Garage
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.auto_heat_garage
+    from: 'on'
+    to: 'off'
+  conditions: []
+  actions:
+  - action: switch.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - switch.garage_space_heater
+      - switch.garage_space_heater_2
+  mode: single
+- id: '1736098135350'
+  alias: Turn On Auto Heat Garage
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.auto_heat_garage
+    from: 'off'
+    to: 'on'
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.garage_temperature
+        below: 70
+      sequence:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - switch.garage_space_heater
+          - switch.garage_space_heater_2
+    - conditions:
+      - condition: numeric_state
+        entity_id: sensor.garage_temperature
+        below: 75
+      sequence:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.garage_space_heater
+      - action: switch.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.garage_space_heater_2
+    default:
+    - action: switch.turn_off
+      metadata: {}
+      data: {}
+      target:
+        entity_id:
+        - switch.garage_space_heater
+        - switch.garage_space_heater_2
+  mode: single
+- id: '1736175459196'
+  alias: Turn on Garage Space Heater 1
+  description: ''
+  triggers:
+  - trigger: numeric_state
+    entity_id:
+    - sensor.garage_temperature
+    below: 70
+  conditions:
+  - condition: state
+    entity_id: input_boolean.auto_heat_garage
+    state: 'on'
+  actions:
+  - action: switch.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - switch.garage_space_heater
+  mode: single
+- id: '1736711553909'
+  alias: Office Humidifier Button
+  description: ''
+  use_blueprint:
+    path: cecche/ikea-somrig-remote-e2213-zha.yaml
+    input:
+      remote: 4c256d98a7d345d5e121412b1267a47a
+      single_dot_single_press:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.office_humidifier_switch
+      double_dot_single_press:
+      - action: switch.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.office_humidifier_switch
+- id: '1736711618628'
+  alias: Office Lava Lamp Button
+  description: ''
+  use_blueprint:
+    path: cecche/ikea-somrig-remote-e2213-zha.yaml
+    input:
+      remote: 40e3974862712e4b476eb1ed2a23bae5
+      single_dot_single_press:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - switch.lava_lamp_switch
+      double_dot_single_press:
+      - action: switch.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - switch.lava_lamp_switch
+- id: '1736805493931'
+  alias: Studio Wall Remote
+  description: ''
+  use_blueprint:
+    path: codycodes/hue-remote-dimmer-december-2021.yaml
+    input:
+      dimmer_device: 84e91f366c91884825f4785641f83f29
+      on_short_action:
+      - action: input_boolean.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.is_studio_occupied
+      off_short_action: []
+      brightness_up_short_action: []
+      brightness_down_short_action: []
+- id: '1736805872970'
+  alias: Studio Night Stand Remote
+  description: ''
+  use_blueprint:
+    path: codycodes/hue-remote-dimmer-december-2021.yaml
+    input:
+      dimmer_device: 8ca34a386198946bfdaace85059ba26b
+      on_short_action:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.studio
+      off_short_action: []
+      brightness_up_short_action: []
+      brightness_down_short_action: []
+- id: '1737833489519'
+  alias: Turn Powder Room Lights Off
+  description: ''
+  triggers:
+  - type: turned_off
+    device_id: 5a49fc9f43bdca4fe8d92d6a086f50a0
+    entity_id: 2a273dba194f277350205857c0cfad41
+    domain: light
+    trigger: device
+  conditions: []
+  actions:
+  - action: input_boolean.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.is_powder_room_occupied
+  mode: single
+- id: '1737910497739'
+  alias: Powder Room Motion Detected
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.powder_room_occupancy_motion
+    from: 'off'
+    to: 'on'
+  conditions:
+  - type: is_not_open
+    condition: device
+    device_id: 60d2cf986e1817d228413aa18d9d459b
+    entity_id: 42c82d83185795360274eedc28f3384e
+    domain: binary_sensor
+  - condition: state
+    entity_id: light.powder_room_vanity_lights
+    state: 'off'
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.powder_room_vanity_lights
+  mode: single
+- id: '1737916309674'
+  alias: Office Motion Detected
+  description: ''
+  triggers:
+  - type: motion
+    device_id: af6d5bae9b98e537a893f2ee1b1c83fe
+    entity_id: f7800261a94d0dd772c450cbee76d99b
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: state
+    entity_id: input_boolean.office_lights_motion_sensor
+    state: 'on'
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: light.ians_office
+  mode: single
+- id: '1738068740684'
+  alias: Powder room exhaust fan timer
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 783a43d703d58e95a40c87a74266708c
+    entity_id: 1ec6914372ed8a7d52c92eaa1d87e0ac
+    domain: switch
+    trigger: device
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: 783a43d703d58e95a40c87a74266708c
+    entity_id: 1ec6914372ed8a7d52c92eaa1d87e0ac
+    domain: switch
+  mode: single
+- id: '1738625386111'
+  alias: Garage Ikea Button 1
+  description: ''
+  use_blueprint:
+    path: cecche/ikea-somrig-remote-e2213-zha.yaml
+    input:
+      remote: 69c1346480ba7830f692cd10e5002f27
+      single_dot_single_press:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          transition: 2
+          kelvin: 4515
+          brightness_pct: 100
+        target:
+          entity_id:
+          - light.garage_lamps
+      double_dot_single_press:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.garage_lamps
+      single_dot_double_press:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          transition: 2
+          kelvin: 2000
+          brightness_pct: 100
+        target:
+          entity_id:
+          - light.garage_lamps
+      double_dot_double_press:
+      - action: light.turn_on
+        metadata: {}
+        data:
+          transition: 2
+          kelvin: 2000
+          brightness_pct: 50
+        target:
+          entity_id:
+          - light.garage_lamps
+- id: '1738805990178'
+  alias: Master Sitting Area Wall Switch
+  description: ''
+  use_blueprint:
+    path: codycodes/hue-remote-dimmer-december-2021.yaml
+    input:
+      dimmer_device: 0ee3fc728167de77867c8fb5769b1124
+      on_short_action:
+      - action: input_boolean.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.is_master_sitting_area_occupied
+- id: '1738807404620'
+  alias: Master Bedroom Dresser Switch
+  description: ''
+  use_blueprint:
+    path: codycodes/hue-remote-dimmer-december-2021.yaml
+    input:
+      dimmer_device: bf8f20f5e1e68cb443c03caa4d316a8f
+      on_short_action: []
+      brightness_up_short_action:
+      - action: input_boolean.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.bedtime
+      brightness_down_short_action:
+      - action: input_boolean.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: input_boolean.bedtime
+- id: '1739319968907'
+  alias: Master Bedroom Wall Pico
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: 57121a520b7e5d7a3a0b64c6c26d69f7
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.master_bedroom_ceiling
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id:
+          - light.master_bedroom_ceiling
+      up_raise:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.master_bedroom_lamps
+      down_lower:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id:
+          - light.master_bedroom_lamps
+      middle_stop:
+      - action: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.master_bed_all
+- id: '1739374602898'
+  alias: Office Fountain Button
+  description: ''
+  use_blueprint:
+    path: cecche/ikea-somrig-remote-e2213-zha.yaml
+    input:
+      remote: b2db31952bd7f028b9f60ef246097604
+      single_dot_single_press:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.office_fountain
+      double_dot_single_press:
+      - action: switch.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.office_fountain
+- id: '1739896638393'
+  alias: Living Room Stairs Pico
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: fb0faded3be34e155f39d1c73f57e643
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.hallway
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.hallway
+      middle_stop:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.adaptive_lighting_sleep_mode_hallway
+- id: '1739896660760'
+  alias: Upstairs Hallway Pico
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: b5f80d3b2641f8d09de1a58d373f7cbf
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.hallway
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.hallway
+      middle_stop:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.adaptive_lighting_sleep_mode_hallway
+- id: '1741203656368'
+  alias: Master Bath Door Opened
+  description: ''
+  triggers:
+  - type: opened
+    device_id: 38064af43fe5fdb1c48a84afcaceb36b
+    entity_id: baf0636a04a47d16867f510efdc722e7
+    domain: binary_sensor
+    trigger: device
+  conditions:
+  - condition: state
+    entity_id: light.master_bathroom_vanity_lights
+    state: 'off'
+  actions:
+  - if:
+    - condition: state
+      entity_id: input_boolean.bedtime
+      state: 'on'
+    then:
+    - action: light.turn_on
+      metadata: {}
+      data: {}
+      target:
+        entity_id: light.master_bathroom_vanity_lights
+    else:
+    - action: light.turn_on
+      metadata: {}
+      data: {}
+      target:
+        area_id: master_bathroom
+  mode: single
+- id: '1741220937283'
+  alias: Is Bedtime
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_boolean.bedtime
+  conditions: []
+  actions:
+  - action: script.house_respond_to_change
+    metadata: {}
+    data: {}
+  mode: single
+- id: '1741221170214'
+  alias: Master Sitting Area Pico
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: 7704a6c05887b16436851f12361d42bb
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.master_sitting_area
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.master_sitting_area
+      middle_stop:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.adaptive_lighting_sleep_mode_master_sitting_area
+- id: '1743812159109'
+  alias: Garage Fan Remote
+  description: ''
+  use_blueprint:
+    path: cecche/ikea-somrig-remote-e2213-zha.yaml
+    input:
+      remote: 2c8a3688fa47eed253888c626525ace3
+      single_dot_single_press:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.garage_fan
+      double_dot_single_press:
+      - action: switch.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.garage_fan
+- id: '1743812252558'
+  alias: Garage Door Remote
+  description: ''
+  use_blueprint:
+    path: cecche/ikea-somrig-remote-e2213-zha.yaml
+    input:
+      remote: 5bf406a8a616f31f287370031840d726
+      single_dot_single_press:
+      - action: cover.open_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.ratgdov25i_4b0ac1_door
+      double_dot_single_press:
+      - action: cover.close_cover
+        metadata: {}
+        data: {}
+        target:
+          entity_id: cover.ratgdov25i_4b0ac1_door
+- id: '1744586270586'
+  alias: Main Floor Light Scene
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.main_floor_light_scene
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: input_select.main_floor_light_scene
+        state: 'Off'
+      sequence:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - switch.adaptive_lighting_main_floor
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.main_floor
+    - conditions:
+      - condition: state
+        entity_id: input_select.main_floor_light_scene
+        state: Full Bright
+      sequence:
+      - action: switch.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - switch.adaptive_lighting_main_floor
+      - action: light.turn_on
+        metadata: {}
+        data:
+          transition: 2
+          kelvin: 4255
+          brightness_pct: 100
+        target:
+          entity_id: light.main_floor
+    - conditions:
+      - condition: state
+        entity_id: input_select.main_floor_light_scene
+        state: Automatic-Bright
+      sequence:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - switch.adaptive_lighting_main_floor
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.main_floor
+    - conditions:
+      - condition: state
+        entity_id: input_select.main_floor_light_scene
+        state: Automatic-Morning
+      sequence:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - switch.adaptive_lighting_main_floor
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.bar
+          - light.living_room_lamps
+          - light.kitchen_hanging
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id:
+          - light.ians_office
+          - light.living_room_recessed_lights
+          - light.kitchen_ceiling
+    - conditions:
+      - condition: state
+        entity_id: input_select.main_floor_light_scene
+        state: Automatic-Dim
+      sequence:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - switch.adaptive_lighting_main_floor
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.kitchen_hanging
+          - light.living_room_lamps
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id:
+          - light.ians_office
+          - light.living_room_recessed_lights
+          - light.bar
+          - light.kitchen_ceiling
+  mode: single
+- id: '1749680911914'
+  alias: Master Bedroom Ian Night Stand Pico
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: 2a169d293e948ac06347caea424a2edb
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.master_bedroom_ceiling
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id:
+          - light.master_bedroom_ceiling
+      up_raise:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.master_bedroom_lamps
+      down_lower:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id:
+          - light.master_bedroom_lamps
+      middle_stop:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.adaptive_lighting_sleep_mode_master_sitting_area
+- id: '1750688745671'
+  alias: Hallway Guest Rooms Pico
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: 4be64a5d963440f5c7724ddc3a12625b
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.hallway
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.hallway
+      middle_stop:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.adaptive_lighting_sleep_mode_hallway
+- id: '1752171910091'
+  alias: Master Bedroom Other Night Stand Pico
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: b75d753a7305b3c978021b4e6d12c839
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.master_bedroom_ceiling
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id:
+          - light.master_bedroom_ceiling
+      up_raise:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id:
+          - light.master_bedroom_lamps
+      down_lower:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id:
+          - light.master_bedroom_lamps
+      middle_stop:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.adaptive_lighting_sleep_mode_master_sitting_area
+- id: '1754614572034'
+  alias: Close Garage Door
+  description: ''
+  triggers:
+  - trigger: time
+    at: input_datetime.close_garage_time
+  conditions:
+  - condition: state
+    entity_id: input_boolean.close_garage_door
+    state: 'on'
+  actions:
+  - action: cover.close_cover
+    metadata: {}
+    data: {}
+    target:
+      entity_id: cover.ratgdov25i_4b0ac1_door
+  - type: turn_off
+    device_id: 8dff28de95e13b041ab353c536704e0d
+    entity_id: a432f921be8b82b7562ce4c664fe04b3
+    domain: fan
+  mode: single
+- id: '1756085944794'
+  alias: Alarm
+  description: ''
+  triggers:
+  - trigger: time
+    at: input_datetime.alarm_time
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+    - sun
+    - sat
+  conditions:
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: input_boolean.is_someone_home
+      state: 'on'
+    - condition: state
+      entity_id: input_boolean.set_alarm
+      state: 'on'
+  actions:
+  - action: script.wake_up
+    metadata: {}
+    data: {}
+  mode: single
+- id: '1757199775439'
+  alias: Reboot Garage Apple TV
+  description: ''
+  triggers:
+  - type: power
+    device_id: f91025b9d854fa02a4af589c041c13fd
+    entity_id: 759b6e2a04f20e8131a1efaff836952d
+    domain: sensor
+    trigger: device
+    below: 0.1
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 10
+  conditions:
+  - condition: device
+    type: is_on
+    device_id: f91025b9d854fa02a4af589c041c13fd
+    entity_id: ff2129d659059d4772ff4fac7380d98c
+    domain: switch
+  actions:
+  - type: turn_off
+    device_id: f91025b9d854fa02a4af589c041c13fd
+    entity_id: ff2129d659059d4772ff4fac7380d98c
+    domain: switch
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 10
+      milliseconds: 0
+  - type: turn_on
+    device_id: f91025b9d854fa02a4af589c041c13fd
+    entity_id: ff2129d659059d4772ff4fac7380d98c
+    domain: switch
+  - delay:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
+  mode: single
+- id: '1757204787627'
+  alias: Living Room Lights Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      enable_all_button: true
+      pico_remote: f313fea4604797def730c7af1df6fcfb
+      ceiling_group: light.living_room_recessed_lights
+      lamps_group: light.living_room_lamps
+      all_group: light.living_room
+- id: '1757204856581'
+  alias: Living Room Bar Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 0ddc4b37007212667d7d75461130e56a
+      ceiling_group: light.bar
+      lamps_group: light.bar_accent_light
+      enable_all_button: true
+      all_group: light.bar_all_lights
+- id: '1757208046896'
+  alias: Kitchen Cooking Lights Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 3f016d73a85cba52911b8ad07be3999b
+      ceiling_group: light.kitchen_recessed_lights
+      lamps_group: light.kitchen_cooking_lights_hanging
+      all_group: light.kitchen_cooking_lights
+- id: '1757208102017'
+  alias: Kitchen Dining Lights Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 04151c2ecb6f02ce23f5ba33b6482f09
+      ceiling_group: light.dining_ceiling
+      lamps_group: light.dining_table_light
+      all_group: light.dining_lights
+- id: '1757208241536'
+  alias: Kitchen Stairs Other Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 3c8b70092071cbac0d57862cee0ba170
+      ceiling_group: light.kitchen_ceiling
+      lamps_group: light.kitchen_hanging_lights
+      all_group: light.kitchen_all_lights
+- id: '1757208476669'
+  alias: Guest Room Wall Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 51e06cb134275a447301ec2f7ab29627
+      ceiling_group: light.guest_room_ceiling
+      lamps_group: light.guest_room_lamps
+      all_group: light.guest_room
+- id: '1757208498147'
+  alias: Guest Room Night Stand Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 417e2098adf7b38b4cec060b7c88053a
+      ceiling_group: light.guest_room_ceiling
+      lamps_group: light.guest_room_lamps
+      all_group: light.guest_room
+- id: '1757208953020'
+  alias: Studio Bed Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 64b440ff5262b9617218b215af1d64a1
+      ceiling_group: light.studio_ceiling
+      lamps_group: light.studio_lamps
+      all_group: light.studio
+- id: '1757208972127'
+  alias: Studio Wall Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 0b61d7c6790408166578dce6cda3b354
+      ceiling_group: light.studio_ceiling
+      lamps_group: light.studio_lamps
+      all_group: light.studio
+- id: '1757208986843'
+  alias: Studio Desk Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 1c3f48bbb3f9cbb1ae97b425dfaae6c2
+      ceiling_group: light.studio_ceiling
+      lamps_group: light.studio_lamps
+      all_group: light.studio
+- id: '1757209058330'
+  alias: Office Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 26423efa93852902db8e76d1c85e47e9
+      ceiling_group: light.office_ceiling_lights
+      lamps_group: light.office_lamps_2
+      enable_all_button: true
+      all_group: light.office_all_lights
+- id: '1757259555409'
+  alias: Living Room Audio Pico
+  description: ''
+  use_blueprint:
+    path: pico_sonos.yaml
+    input:
+      pico_remote: 75abeeae51926c4ec72938f43b4608a0
+      sonos_player: media_player.living_room_3
+- id: '1757259637247'
+  alias: Kitchen Audio Pico
+  description: ''
+  use_blueprint:
+    path: pico_sonos.yaml
+    input:
+      pico_remote: f7421e15b16696fa01629abbe074a02c
+      sonos_player: media_player.kitchen
+- id: '1757259681460'
+  alias: Hallway Audio Pico
+  description: ''
+  use_blueprint:
+    path: pico_sonos.yaml
+    input:
+      pico_remote: 69204cfd9f77bc2db8b673fdaa5237bd
+      sonos_player: media_player.hallway
+- id: '1758142525158'
+  alias: Garage Light Switch
+  description: ''
+  use_blueprint:
+    path: fxlt/zha-inovelli-vzm31-sn-blue-series-2-1-switch.yaml
+    input:
+      inovelli_switch: d24d2732aa9945dc9ab8c3f75c0cfcde
+      button_1:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.garage
+      button_2:
+      - if:
+        - condition: state
+          entity_id: switch.adaptive_lighting_garage
+          state: 'on'
+        then:
+        - action: light.turn_on
+          metadata: {}
+          data: {}
+          target:
+            entity_id: light.garage
+        else:
+        - action: light.turn_on
+          metadata: {}
+          data:
+            transition: 2
+            color_temp_kelvin: 4499
+            brightness_pct: 100
+          target:
+            entity_id: light.garage
+      button_3:
+      - action: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.adaptive_lighting_garage
+      button_2_double:
+      - action: switch.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.garage_fan_new
+      button_1_double:
+      - action: switch.turn_off
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.garage_fan_new
+      button_3_double:
+      - if:
+        - condition: state
+          entity_id: switch.adaptive_lighting_sleep_mode_garage
+          state: 'off'
+        then:
+        - action: switch.turn_on
+          metadata: {}
+          data: {}
+          target:
+            entity_id: switch.adaptive_lighting_garage
+        - delay:
+            hours: 0
+            minutes: 0
+            seconds: 0
+            milliseconds: 500
+        - action: switch.turn_on
+          metadata: {}
+          data: {}
+          target:
+            entity_id: switch.adaptive_lighting_sleep_mode_garage
+        else:
+        - action: switch.turn_off
+          metadata: {}
+          data: {}
+          target:
+            entity_id: switch.adaptive_lighting_sleep_mode_garage
+- id: '1758154386941'
+  alias: Garage Adaptive Lighting Off
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - switch.adaptive_lighting_garage
+    from: 'on'
+    to: 'off'
+  conditions:
+  - condition: state
+    entity_id: light.garage
+    state: 'on'
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      transition: 2
+      color_temp_kelvin: 4499
+      brightness_pct: 100
+    target:
+      entity_id: light.garage
+  mode: single
+- id: '1758806231476'
+  alias: Kitchen Bar Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: e76082aa8ec8c1f5f0372eb2c0d68816
+      ceiling_group: light.bar
+      lamps_group: light.bar_accent_light
+      all_group: light.bar_all_lights
+- id: '1758848524521'
+  alias: Kitchen Accent Light Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 0cceb801c66053bdab665f01667d90a2
+      ceiling_group: light.kitchen_ceiling
+      lamps_group: light.kitchen_hanging_lights
+      all_group: light.kitchen_all_lights
+- id: '1759271072037'
+  alias: Basement Door Opened
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.basement_door_opening
+    to: 'on'
+  conditions: []
+  actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      transition: 2
+    target:
+      entity_id: light.basement_main_lights
+  mode: single
+- id: '1759271114616'
+  alias: Basement Door Closed
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.basement_door_opening
+    to: 'off'
+  conditions: []
+  actions:
+  - action: light.turn_off
+    metadata: {}
+    data:
+      transition: 2
+    target:
+      entity_id: light.basement_main_lights
+  mode: single

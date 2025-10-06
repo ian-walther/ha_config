@@ -1,0 +1,6 @@
+office_cove_ui_mired:
+  name: Office Cove CT (UI mired)
+  min: 154
+  max: 500
+  step: 1
+  mode: box

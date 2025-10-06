@@ -1,0 +1,28 @@
+
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+# frontend:
+  # themes: !include_dir_merge_named themes
+
+# Text to speech
+tts: !include core/tts.yaml
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+http: !include core/http.yaml
+input_number: !include input_number.yaml
+
+light:
+  - platform: template
+    lights: !include_dir_merge_named lights/template
+      
+wake_on_lan:
+
+samsungtv_smart:
+  - host: 192.168.1.130      # replace with your Kitchen TV’s reserved IP
+    mac: "10:2b:41:bf:60:56"  # the *wired* MAC
+    name: Kitchen TV

@@ -1,0 +1,12 @@
+secrets.yaml
+*db*
+*log*
+*.pem
+.cloud/*
+.storage/*
+custom_components/*
+nest/*
+backups/*
+known_devices.yaml
+tts/*
+www/*

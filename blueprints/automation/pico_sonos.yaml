@@ -1,0 +1,97 @@
+blueprint:
+  name: Pico 5-Button → Sonos (device picker, minimal)
+  description: >
+    Control a Sonos player with a Lutron Caseta Pico (PJ2-3BRL-GXX-X01) using press events.
+    Mapping:
+      Top (On) → Play/Pause
+      Middle-Top (Raise) → Volume Up
+      Center (Fav/Stop) → No action
+      Middle-Bottom (Lower) → Volume Down
+      Bottom (Off) → Next Track
+    Uses bare media_player services; no brightness/CT or special Sonos integration required.
+  domain: automation
+  input:
+    pico_remote:
+      name: Pico Remote
+      description: Select the Pico 5-button remote to use
+      selector:
+        device:
+          model: PJ2-3BRL-GXX-X01 (Pico3ButtonRaiseLower)
+          multiple: false
+    sonos_player:
+      name: Sonos player
+      description: Select the Sonos media_player entity to control
+      selector:
+        entity:
+          domain: media_player
+
+mode: restart
+max_exceeded: silent
+
+# Device triggers for Pico button presses
+trigger:
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'on'
+    id: top_on
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: raise
+    id: middle_top
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: stop
+    id: center
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: lower
+    id: middle_bottom
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'off'
+    id: bottom_off
+
+action:
+  - choose:
+      # Top → Play/Pause
+      - conditions: [{ condition: trigger, id: top_on }]
+        sequence:
+          - service: media_player.media_play_pause
+            target:
+              entity_id: !input sonos_player
+
+      # Middle-Top (Raise) → Volume Up
+      - conditions: [{ condition: trigger, id: middle_top }]
+        sequence:
+          - service: media_player.volume_up
+            target:
+              entity_id: !input sonos_player
+
+      # Center (Stop) → No-op
+      - conditions: [{ condition: trigger, id: center }]
+        sequence: []
+
+      # Middle-Bottom (Lower) → Volume Down
+      - conditions: [{ condition: trigger, id: middle_bottom }]
+        sequence:
+          - service: media_player.volume_down
+            target:
+              entity_id: !input sonos_player
+
+      # Bottom (Off) → Next Track
+      - conditions: [{ condition: trigger, id: bottom_off }]
+        sequence:
+          - service: media_player.media_next_track
+            target:
+              entity_id: !input sonos_player
+    default: []

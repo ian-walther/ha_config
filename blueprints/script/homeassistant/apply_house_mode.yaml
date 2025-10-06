@@ -1,0 +1,549 @@
+blueprint:
+  name: Apply House Mode — Pool + Implicit OFF (labels/groups friendly)
+  description: >
+    UI-first script blueprint for house modes. Select a pool of controllable devices via a Target
+    (Label/Area/Device/Group/Entities), then pick which should be ON; the rest of the pool is
+    implicitly turned OFF (except exclusions). Bare light calls for Adaptive Lighting; 2s OFF
+    transition for lights only; jittered delays; state-aware skips; confirm + single retry.
+  domain: script
+  input:
+    # ---- LIGHTS ----
+    lights_pool:
+      name: Lights pool (label/area/device/group/entities)
+      description: >
+        Choose a Target that contains *all lights you ever want this blueprint to control*.
+        Tip: create a Label like "house_mode_pool_light" and select it here.
+      selector:
+        target:
+          entity:
+            domain: light
+    lights_on_pick:
+      name: Lights to turn ON (subset of pool)
+      description: Pick which lights from the pool should be ON for this mode. Others become OFF.
+      default: []
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    lights_exclude:
+      name: Lights to exclude (never touched)
+      default: []
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    lights_implicit_off:
+      name: Implicitly turn OFF all pool lights not selected as ON (after exclusions)
+      default: true
+      selector:
+        boolean:
+
+    # ---- SWITCHES ----
+    switches_pool:
+      name: Switches pool (label/area/device/group/entities)
+      description: >
+        Choose a Target that contains *all switches you ever want this blueprint to control*.
+        Tip: create a Label like "house_mode_pool_switch" and select it here.
+      selector:
+        target:
+          entity:
+            domain: switch
+    switches_on_pick:
+      name: Switches to turn ON (subset of pool)
+      default: []
+      selector:
+        entity:
+          domain: switch
+          multiple: true
+    switches_exclude:
+      name: Switches to exclude (never touched)
+      default: []
+      selector:
+        entity:
+          domain: switch
+          multiple: true
+    switches_implicit_off:
+      name: Implicitly turn OFF all pool switches not selected as ON (after exclusions)
+      default: true
+      selector:
+        boolean:
+
+    # ---- Timing & reliability knobs (defaults chosen for Zigbee/Hue friendliness) ----
+    per_call_delay_lights_ms:
+      name: Per-call delay for lights (ms)
+      default: 300
+      selector:
+        number:
+          min: 0
+          max: 2000
+          step: 10
+          mode: slider
+    per_call_delay_switches_ms:
+      name: Per-call delay for switches (ms)
+      default: 150
+      selector:
+        number:
+          min: 0
+          max: 2000
+          step: 10
+          mode: slider
+    jitter_ms:
+      name: Jitter (±ms)
+      description: Random variation added to each per-call delay to avoid bursts.
+      default: 75
+      selector:
+        number:
+          min: 0
+          max: 1000
+          step: 5
+          mode: slider
+    confirm_timeout_lights_s:
+      name: Confirm timeout for lights (s)
+      default: 1.2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.1
+          mode: slider
+    confirm_timeout_switches_s:
+      name: Confirm timeout for switches (s)
+      default: 0.8
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.1
+          mode: slider
+    max_retries:
+      name: Max retries per entity (after initial attempt)
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 3
+          step: 1
+          mode: slider
+    retry_gap_ms:
+      name: Retry gap (ms)
+      default: 900
+      selector:
+        number:
+          min: 0
+          max: 5000
+          step: 50
+          mode: slider
+
+    # Visual nicety only applies to lights OFF
+    off_transition_lights_s:
+      name: Turn_off transition for lights (s)
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.5
+          mode: slider
+
+    # Ordering
+    lights_on_first:
+      name: Lights — apply ONs before OFFs
+      default: true
+      selector:
+        boolean:
+    switches_off_first:
+      name: Switches — apply OFFs before ONs
+      default: true
+      selector:
+        boolean:
+
+    # Utility
+    dry_run:
+      name: Dry run (log only, no changes)
+      default: false
+      selector:
+        boolean:
+
+mode: queued
+max: 10
+
+# -------- Helper: expand a Target (label/area/device/group/entities) to entity_id list (domain-filtered) --------
+variables:
+  # Raw inputs
+  lights_pool: !input lights_pool
+  lights_on_pick: !input lights_on_pick
+  lights_exclude: !input lights_exclude
+  lights_implicit_off: !input lights_implicit_off
+
+  switches_pool: !input switches_pool
+  switches_on_pick: !input switches_on_pick
+  switches_exclude: !input switches_exclude
+  switches_implicit_off: !input switches_implicit_off
+
+  per_call_delay_lights_ms: !input per_call_delay_lights_ms
+  per_call_delay_switches_ms: !input per_call_delay_switches_ms
+  jitter_ms: !input jitter_ms
+  confirm_timeout_lights_s: !input confirm_timeout_lights_s
+  confirm_timeout_switches_s: !input confirm_timeout_switches_s
+  max_retries: !input max_retries
+  retry_gap_ms: !input retry_gap_ms
+  off_transition_lights_s: !input off_transition_lights_s
+  lights_on_first: !input lights_on_first
+  switches_off_first: !input switches_off_first
+  dry_run: !input dry_run
+
+  # --- compute lights pool ids ---
+  lights_pool_ids: >-
+    {% set tgt = lights_pool if lights_pool is defined else {} %}
+    {% set ns = namespace(ids=[]) %}
+    {% if tgt is mapping %}
+      {% if tgt.entity_id %}
+        {% set ns.ids = ns.ids + (tgt.entity_id if tgt.entity_id is list else [tgt.entity_id]) %}
+      {% endif %}
+      {% if tgt.area_id %}
+        {% for a in (tgt.area_id if tgt.area_id is list else [tgt.area_id]) %}
+          {% set ns.ids = ns.ids + (area_entities(a) | select('match','^light\.') | list) %}
+        {% endfor %}
+      {% endif %}
+      {% if tgt.device_id %}
+        {% for d in (tgt.device_id if tgt.device_id is list else [tgt.device_id]) %}
+          {% set ns.ids = ns.ids + (device_entities(d) | select('match','^light\.') | list) %}
+        {% endfor %}
+      {% endif %}
+      {% if tgt.label_id %}
+        {% for l in (tgt.label_id if tgt.label_id is list else [tgt.label_id]) %}
+          {% set ns.ids = ns.ids + (label_entities(l) | select('match','^light\.') | list) %}
+        {% endfor %}
+      {% endif %}
+    {% endif %}
+    {{ ns.ids | unique | list }}
+
+  # --- compute switches pool ids ---
+  switches_pool_ids: >-
+    {% set tgt = switches_pool if switches_pool is defined else {} %}
+    {% set ns = namespace(ids=[]) %}
+    {% if tgt is mapping %}
+      {% if tgt.entity_id %}
+        {% set ns.ids = ns.ids + (tgt.entity_id if tgt.entity_id is list else [tgt.entity_id]) %}
+      {% endif %}
+      {% if tgt.area_id %}
+        {% for a in (tgt.area_id if tgt.area_id is list else [tgt.area_id]) %}
+          {% set ns.ids = ns.ids + (area_entities(a) | select('match','^switch\.') | list) %}
+        {% endfor %}
+      {% endif %}
+      {% if tgt.device_id %}
+        {% for d in (tgt.device_id if tgt.device_id is list else [tgt.device_id]) %}
+          {% set ns.ids = ns.ids + (device_entities(d) | select('match','^switch\.') | list) %}
+        {% endfor %}
+      {% endif %}
+      {% if tgt.label_id %}
+        {% for l in (tgt.label_id if tgt.label_id is list else [tgt.label_id]) %}
+          {% set ns.ids = ns.ids + (label_entities(l) | select('match','^switch\.') | list) %}
+        {% endfor %}
+      {% endif %}
+    {% endif %}
+    {{ ns.ids | unique | list }}
+
+  # --- sanitize ON picks to pool; compute exclusions ---
+  lights_on_ids: >-
+    {{ (lights_on_pick | default([])) | select('in', lights_pool_ids) | list }}
+  lights_exclude_ids: >-
+    {{ (lights_exclude | default([])) | select('match','^light\.') | list }}
+  switches_on_ids: >-
+    {{ (switches_on_pick | default([])) | select('in', switches_pool_ids) | list }}
+  switches_exclude_ids: >-
+    {{ (switches_exclude | default([])) | select('match','^switch\.') | list }}
+
+  # --- compute OFF sets ---
+  lights_off_ids: >-
+    {% if lights_implicit_off %}
+      {{ (lights_pool_ids | reject('in', lights_on_ids) | reject('in', lights_exclude_ids) | list) }}
+    {% else %}
+      {{ [] }}
+    {% endif %}
+  switches_off_ids: >-
+    {% if switches_implicit_off %}
+      {{ (switches_pool_ids | reject('in', switches_on_ids) | reject('in', switches_exclude_ids) | list) }}
+    {% else %}
+      {{ [] }}
+    {% endif %}
+
+sequence:
+  - parallel:
+      # ---- LIGHTS BRANCH ----
+      - sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ lights_on_first }}"
+                sequence:
+                  - alias: "Lights: ON from pool subset"
+                    repeat:
+                      for_each: "{{ lights_on_ids }}"
+                      sequence:
+                        - variables: { target: "{{ repeat.item }}", desired: "on" }
+                        - repeat:
+                            while:
+                              - condition: template
+                                value_template: >
+                                  {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                            sequence:
+                              - choose:
+                                  - conditions: [{ condition: template, value_template: "{{ dry_run }}" }]
+                                    sequence:
+                                      - service: logbook.log
+                                        data:
+                                          name: "House Mode (DRY)"
+                                          message: "Would call light.turn_on on {{ target }}"
+                                default:
+                                  - service: light.turn_on
+                                    target: { entity_id: "{{ target }}" }
+                              - wait_template: "{{ is_state(target, desired) }}"
+                                timeout: "{{ confirm_timeout_lights_s }}"
+                                continue_on_timeout: true
+                              - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                        - delay:
+                            milliseconds: >
+                              {% set base = per_call_delay_lights_ms|int %}
+                              {% set j = jitter_ms|int %}
+                              {% set offsets = range(-j, j+1)|list %}
+                              {% set d = base + (offsets|random) %}
+                              {{ [d, 0]|max }}
+                  - alias: "Lights: OFF (implicit from pool − ON − exclusions)"
+                    repeat:
+                      for_each: "{{ lights_off_ids }}"
+                      sequence:
+                        - variables: { target: "{{ repeat.item }}", desired: "off" }
+                        - repeat:
+                            while:
+                              - condition: template
+                                value_template: >
+                                  {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                            sequence:
+                              - choose:
+                                  - conditions: [{ condition: template, value_template: "{{ dry_run }}" }]
+                                    sequence:
+                                      - service: logbook.log
+                                        data:
+                                          name: "House Mode (DRY)"
+                                          message: "Would call light.turn_off on {{ target }} (transition={{ off_transition_lights_s }}s)"
+                                default:
+                                  - service: light.turn_off
+                                    target: { entity_id: "{{ target }}" }
+                                    data: { transition: "{{ off_transition_lights_s }}" }
+                              - wait_template: "{{ is_state(target, desired) }}"
+                                timeout: "{{ confirm_timeout_lights_s }}"
+                                continue_on_timeout: true
+                              - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                        - delay:
+                            milliseconds: >
+                              {% set base = per_call_delay_lights_ms|int %}
+                              {% set j = jitter_ms|int %}
+                              {% set offsets = range(-j, j+1)|list %}
+                              {% set d = base + (offsets|random) %}
+                              {{ [d, 0]|max }}
+            default:
+              # OFFs first, then ONs
+              - alias: "Lights: OFF first"
+                repeat:
+                  for_each: "{{ lights_off_ids }}"
+                  sequence:
+                    - variables: { target: "{{ repeat.item }}", desired: "off" }
+                    - repeat:
+                        while:
+                          - condition: template
+                            value_template: >
+                              {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                        sequence:
+                          - choose:
+                              - conditions: [{ condition: template, value_template: "{{ dry_run }}" }]
+                                sequence:
+                                  - service: logbook.log
+                                    data:
+                                      name: "House Mode (DRY)"
+                                      message: "Would call light.turn_off on {{ target }} (transition={{ off_transition_lights_s }}s)"
+                            default:
+                              - service: light.turn_off
+                                target: { entity_id: "{{ target }}" }
+                                data: { transition: "{{ off_transition_lights_s }}" }
+                          - wait_template: "{{ is_state(target, desired) }}"
+                            timeout: "{{ confirm_timeout_lights_s }}"
+                            continue_on_timeout: true
+                          - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                    - delay:
+                        milliseconds: >
+                          {% set base = per_call_delay_lights_ms|int %}
+                          {% set j = jitter_ms|int %}
+                          {% set offsets = range(-j, j+1)|list %}
+                          {% set d = base + (offsets|random) %}
+                          {{ [d, 0]|max }}
+              - alias: "Lights: ON second"
+                repeat:
+                  for_each: "{{ lights_on_ids }}"
+                  sequence:
+                    - variables: { target: "{{ repeat.item }}", desired: "on" }
+                    - repeat:
+                        while:
+                          - condition: template
+                            value_template: >
+                              {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                        sequence:
+                          - choose:
+                              - conditions: [{ condition: template, value_template: "{{ dry_run }}" }]
+                                sequence:
+                                  - service: logbook.log
+                                    data:
+                                      name: "House Mode (DRY)"
+                                      message: "Would call light.turn_on on {{ target }}"
+                            default:
+                              - service: light.turn_on
+                                target: { entity_id: "{{ target }}" }
+                          - wait_template: "{{ is_state(target, desired) }}"
+                            timeout: "{{ confirm_timeout_lights_s }}"
+                            continue_on_timeout: true
+                          - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                    - delay:
+                        milliseconds: >
+                          {% set base = per_call_delay_lights_ms|int %}
+                          {% set j = jitter_ms|int %}
+                          {% set offsets = range(-j, j+1)|list %}
+                          {% set d = base + (offsets|random) %}
+                          {{ [d, 0]|max }}
+
+      # ---- SWITCHES BRANCH ----
+      - sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ switches_off_first }}"
+                sequence:
+                  - alias: "Switches: OFF from pool − ON − exclusions"
+                    repeat:
+                      for_each: "{{ switches_off_ids }}"
+                      sequence:
+                        - variables: { target: "{{ repeat.item }}", desired: "off" }
+                        - repeat:
+                            while:
+                              - condition: template
+                                value_template: >
+                                  {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                            sequence:
+                              - choose:
+                                  - conditions: [{ condition: template, value_template: "{{ dry_run }}" }]
+                                    sequence:
+                                      - service: logbook.log
+                                        data:
+                                          name: "House Mode (DRY)"
+                                          message: "Would call switch.turn_off on {{ target }}"
+                                default:
+                                  - service: switch.turn_off
+                                    target: { entity_id: "{{ target }}" }
+                              - wait_template: "{{ is_state(target, desired) }}"
+                                timeout: "{{ confirm_timeout_switches_s }}"
+                                continue_on_timeout: true
+                              - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                        - delay:
+                            milliseconds: >
+                              {% set base = per_call_delay_switches_ms|int %}
+                              {% set j = jitter_ms|int %}
+                              {% set offsets = range(-j, j+1)|list %}
+                              {% set d = base + (offsets|random) %}
+                              {{ [d, 0]|max }}
+                  - alias: "Switches: ON subset"
+                    repeat:
+                      for_each: "{{ switches_on_ids }}"
+                      sequence:
+                        - variables: { target: "{{ repeat.item }}", desired: "on" }
+                        - repeat:
+                            while:
+                              - condition: template
+                                value_template: >
+                                  {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                            sequence:
+                              - choose:
+                                  - conditions: [{ condition: template, value_template: "{{ dry_run }}" }]
+                                    sequence:
+                                      - service: logbook.log
+                                        data:
+                                          name: "House Mode (DRY)"
+                                          message: "Would call switch.turn_on on {{ target }}"
+                                default:
+                                  - service: switch.turn_on
+                                    target: { entity_id: "{{ target }}" }
+                              - wait_template: "{{ is_state(target, desired) }}"
+                                timeout: "{{ confirm_timeout_switches_s }}"
+                                continue_on_timeout: true
+                              - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                        - delay:
+                            milliseconds: >
+                              {% set base = per_call_delay_switches_ms|int %}
+                              {% set j = jitter_ms|int %}
+                              {% set offsets = range(-j, j+1)|list %}
+                              {% set d = base + (offsets|random) %}
+                              {{ [d, 0]|max }}
+            default:
+              # ONs first, then OFFs
+              - alias: "Switches: ON first"
+                repeat:
+                  for_each: "{{ switches_on_ids }}"
+                  sequence:
+                    - variables: { target: "{{ repeat.item }}", desired: "on" }
+                    - repeat:
+                        while:
+                          - condition: template
+                            value_template: >
+                              {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                        sequence:
+                          - choose:
+                              - conditions: [{ condition: template, value_template: "{{ dry_run }}" }]
+                                sequence:
+                                  - service: logbook.log
+                                    data:
+                                      name: "House Mode (DRY)"
+                                      message: "Would call switch.turn_on on {{ target }}"
+                            default:
+                              - service: switch.turn_on
+                                target: { entity_id: "{{ target }}" }
+                          - wait_template: "{{ is_state(target, desired) }}"
+                            timeout: "{{ confirm_timeout_switches_s }}"
+                            continue_on_timeout: true
+                          - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                    - delay:
+                        milliseconds: >
+                          {% set base = per_call_delay_switches_ms|int %}
+                          {% set j = jitter_ms|int %}
+                          {% set offsets = range(-j, j+1)|list %}
+                          {% set d = base + (offsets|random) %}
+                          {{ [d, 0]|max }}
+              - alias: "Switches: OFF second"
+                repeat:
+                  for_each: "{{ switches_off_ids }}"
+                  sequence:
+                    - variables: { target: "{{ repeat.item }}", desired: "off" }
+                    - repeat:
+                        while:
+                          - condition: template
+                            value_template: >
+                              {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                        sequence:
+                          - choose:
+                              - conditions: [{ condition: template, value_template: "{{ dry_run }}" }]
+                                sequence:
+                                  - service: logbook.log
+                                    data:
+                                      name: "House Mode (DRY)"
+                                      message: "Would call switch.turn_off on {{ target }}"
+                            default:
+                              - service: switch.turn_off
+                                target: { entity_id: "{{ target }}" }
+                          - wait_template: "{{ is_state(target, desired) }}"
+                            timeout: "{{ confirm_timeout_switches_s }}"
+                            continue_on_timeout: true
+                          - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                    - delay:
+                        milliseconds: >
+                          {% set base = per_call_delay_switches_ms|int %}
+                          {% set j = jitter_ms|int %}
+                          {% set offsets = range(-j, j+1)|list %}
+                          {% set d = base + (offsets|random) %}
+                          {{ [d, 0]|max }}

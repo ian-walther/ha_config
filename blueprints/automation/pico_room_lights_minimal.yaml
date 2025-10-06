@@ -1,0 +1,126 @@
+blueprint:
+  name: Pico 5-Button → Room Lights (Minimal; device picker, AL-friendly)
+  description: >
+    Pick a Lutron Caseta Pico 5-button remote from a dropdown and map:
+    - Top = Ceiling ON
+    - Bottom = Ceiling OFF (2s transition)
+    - Middle-Top (Raise) = Lamps ON
+    - Middle-Bottom (Lower) = Lamps OFF (2s transition)
+    - Center (Stop) = Toggle ALL (optional; no transitions)
+    Sends bare light.turn_on/turn_off so Adaptive Lighting controls brightness/CT.
+  domain: automation
+  input:
+    pico_remote:
+      name: Pico Remote
+      description: Select the Pico 5-button remote to control this room
+      selector:
+        device:
+          model: PJ2-3BRL-GXX-X01 (Pico3ButtonRaiseLower)
+          multiple: false
+    ceiling_group:
+      name: Ceiling lights group
+      selector:
+        entity:
+          domain: light
+    lamps_group:
+      name: Lamps group
+      selector:
+        entity:
+          domain: light
+    enable_all_button:
+      name: Use center button for "All" group
+      description: If off, the center button does nothing (safe when you have no All group).
+      default: true
+      selector:
+        boolean:
+    all_group:
+      name: All lights group (ceiling + lamps)
+      selector:
+        entity:
+          domain: light
+
+mode: restart
+max_exceeded: silent
+
+variables:
+  enable_all_button: !input enable_all_button
+  all_group: !input all_group
+
+trigger:
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'on'
+    id: top_on
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: 'off'
+    id: bottom_off
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: raise
+    id: middle_top
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: lower
+    id: middle_bottom
+  - platform: device
+    device_id: !input pico_remote
+    domain: lutron_caseta
+    type: press
+    subtype: stop
+    id: center
+
+action:
+  - choose:
+      # Top → CEILING ON (no transition)
+      - conditions: [{ condition: trigger, id: top_on }]
+        sequence:
+          - service: light.turn_on
+            target: { entity_id: !input ceiling_group }
+
+      # Bottom → CEILING OFF (2s)
+      - conditions: [{ condition: trigger, id: bottom_off }]
+        sequence:
+          - service: light.turn_off
+            target: { entity_id: !input ceiling_group }
+            data: { transition: 2 }
+
+      # Middle-Top → LAMPS ON
+      - conditions: [{ condition: trigger, id: middle_top }]
+        sequence:
+          - service: light.turn_on
+            target: { entity_id: !input lamps_group }
+
+      # Middle-Bottom → LAMPS OFF (2s)
+      - conditions: [{ condition: trigger, id: middle_bottom }]
+        sequence:
+          - service: light.turn_off
+            target: { entity_id: !input lamps_group }
+            data: { transition: 2 }
+
+      # Center → TOGGLE ALL (only if enabled; no transitions)
+      - conditions:
+          - condition: trigger
+            id: center
+          - condition: template
+            value_template: "{{ enable_all_button }}"
+        sequence:
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ is_state(all_group, 'on') }}"
+                sequence:
+                  - service: light.turn_off
+                    target: { entity_id: !input all_group }
+            default:
+              - service: light.turn_on
+                target: { entity_id: !input all_group }
+    default: []
