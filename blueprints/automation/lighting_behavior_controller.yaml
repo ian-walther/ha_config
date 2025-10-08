@@ -1,0 +1,160 @@
+blueprint:
+  name: Behavior Layer (Lighting Mode Controller)
+  description: >
+    Adjusts the behavior of lights that are already ON in a zone managed by
+    Adaptive Lighting. Modes: Auto, Sleep, Bright (5500 K @ 100%), Red (pure red @ 100%).
+  domain: automation
+  author: ian-walther
+  source_url: https://example.local/lighting_behavior_controller.yaml
+  input:
+    mode_select:
+      name: Lighting Mode input_select
+      description: Input select that determines the active lighting behavior.
+      selector:
+        entity:
+          domain: input_select
+    adaptive_switch:
+      name: Adaptive Lighting switch
+      description: Adaptive Lighting instance controlling this zone.
+      selector:
+        entity:
+          domain: switch
+          integration: adaptive_lighting
+    separate_turn_on:
+      name: Separate brightness/color commands
+      description: Enable for controllers that require separate turn_on calls.
+      default: false
+      selector:
+        boolean: {}
+    transition:
+      name: Transition seconds
+      description: Smooth fade time for adjustments.
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.5
+          mode: slider
+          unit_of_measurement: s
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: state
+    entity_id: !input mode_select
+
+variables:
+  # resolved inputs
+  mode_select_entity: !input mode_select
+  adaptive: !input adaptive_switch
+  separate: !input separate_turn_on
+  transition: !input transition
+
+  # mode: robust to "Run Actions" (no trigger context)
+  mode: >
+    {% if trigger is defined and trigger.to_state is defined %}
+      {{ trigger.to_state.state }}
+    {% else %}
+      {{ states(mode_select_entity) }}
+    {% endif %}
+
+  # lights currently ON that AL manages
+  lights_on: >
+    {% set all = state_attr(adaptive, 'lights') or [] %}
+    {{ all | select('is_state', 'on') | list }}
+
+condition:
+  - condition: template
+    value_template: "{{ lights_on | length > 0 }}"
+
+action:
+  - choose:
+
+      # 🟢 AUTO
+      - conditions: "{{ mode == 'Auto' }}"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: !input adaptive_switch
+          - service: adaptive_lighting.apply
+            data:
+              entity_id: !input adaptive_switch
+              lights: "{{ lights_on }}"
+
+      # 🌙 SLEEP (use AL's sleep behavior)
+      - conditions: "{{ mode == 'Sleep' }}"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: !input adaptive_switch
+          - service: adaptive_lighting.apply
+            data:
+              entity_id: !input adaptive_switch
+              lights: "{{ lights_on }}"
+              sleep: true
+
+      # 💡 BRIGHT (5500 K @ 100%)
+      - conditions: "{{ mode == 'Bright' }}"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: !input adaptive_switch
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ separate }}"
+                sequence:
+                  - service: light.turn_on
+                    target:
+                      entity_id: "{{ lights_on }}"
+                    data:
+                      brightness_pct: 100
+                      transition: "{{ transition }}"
+                  - service: light.turn_on
+                    target:
+                      entity_id: "{{ lights_on }}"
+                    data:
+                      color_temp: 182  # ≈ 5500 K
+                      transition: "{{ transition }}"
+            default:
+              - service: light.turn_on
+                target:
+                  entity_id: "{{ lights_on }}"
+                data:
+                  brightness_pct: 100
+                  color_temp: 182
+                  transition: "{{ transition }}"
+
+      # 🔴 RED (pure red @ 100%)
+      - conditions: "{{ mode == 'Red' }}"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: !input adaptive_switch
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ separate }}"
+                sequence:
+                  - service: light.turn_on
+                    target:
+                      entity_id: "{{ lights_on }}"
+                    data:
+                      brightness_pct: 100
+                      transition: "{{ transition }}"
+                  - service: light.turn_on
+                    target:
+                      entity_id: "{{ lights_on }}"
+                    data:
+                      hs_color: [0, 100]
+                      transition: "{{ transition }}"
+            default:
+              - service: light.turn_on
+                target:
+                  entity_id: "{{ lights_on }}"
+                data:
+                  brightness_pct: 100
+                  hs_color: [0, 100]
+                  transition: "{{ transition }}"

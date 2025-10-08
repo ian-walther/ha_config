@@ -958,125 +958,6 @@
         data: {}
         target:
           entity_id: cover.ratgdov25i_4b0ac1_door
-- id: '1744586270586'
-  alias: Main Floor Light Scene
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - input_select.main_floor_light_scene
-  conditions: []
-  actions:
-  - choose:
-    - conditions:
-      - condition: state
-        entity_id: input_select.main_floor_light_scene
-        state: 'Off'
-      sequence:
-      - action: switch.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - switch.adaptive_lighting_main_floor
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id: light.main_floor
-    - conditions:
-      - condition: state
-        entity_id: input_select.main_floor_light_scene
-        state: Full Bright
-      sequence:
-      - action: switch.turn_off
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - switch.adaptive_lighting_main_floor
-      - action: light.turn_on
-        metadata: {}
-        data:
-          transition: 2
-          kelvin: 4255
-          brightness_pct: 100
-        target:
-          entity_id: light.main_floor
-    - conditions:
-      - condition: state
-        entity_id: input_select.main_floor_light_scene
-        state: Automatic-Bright
-      sequence:
-      - action: switch.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - switch.adaptive_lighting_main_floor
-      - action: light.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: light.main_floor
-    - conditions:
-      - condition: state
-        entity_id: input_select.main_floor_light_scene
-        state: Automatic-Morning
-      sequence:
-      - action: switch.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - switch.adaptive_lighting_main_floor
-      - action: light.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - light.bar
-          - light.living_room_lamps
-          - light.kitchen_hanging
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id:
-          - light.ians_office
-          - light.living_room_recessed_lights
-          - light.kitchen_ceiling
-    - conditions:
-      - condition: state
-        entity_id: input_select.main_floor_light_scene
-        state: Automatic-Dim
-      sequence:
-      - action: switch.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - switch.adaptive_lighting_main_floor
-      - action: light.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id:
-          - light.kitchen_hanging
-          - light.living_room_lamps
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id:
-          - light.ians_office
-          - light.living_room_recessed_lights
-          - light.bar
-          - light.kitchen_ceiling
-  mode: single
 - id: '1749680911914'
   alias: Master Bedroom Ian Night Stand Pico
   description: ''
@@ -1570,4 +1451,17 @@
       transition: 2
     target:
       entity_id: light.basement_main_lights
+  mode: single
+- id: '1759892145308'
+  alias: Garage Light Mode
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.garage_lighting_mode
+  conditions: []
+  actions:
+  - action: script.asdf
+    metadata: {}
+    data: {}
   mode: single

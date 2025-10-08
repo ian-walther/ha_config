@@ -894,3 +894,15 @@ tv_kitchen_turn_on:
       entity_id: media_player.kitchen_tv
   alias: tv-kitchen_turn_on
   description: ''
+asdf:
+  use_blueprint:
+    path: homeassistant/lighting_behavior_controller.yaml
+    input:
+      mode_select: input_select.garage_lighting_mode
+      adaptive_switch: switch.adaptive_lighting_garage
+      target_lights:
+        entity_id: light.garage
+      sleep_switch: switch.adaptive_lighting_sleep_mode_garage
+      separate_turn_on: true
+  alias: light_mode-garage
+  description: ''

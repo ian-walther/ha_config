@@ -1,0 +1,192 @@
+blueprint:
+  name: Behavior Layer (Lighting Mode Controller)
+  description: >
+    Adjusts the behavior of lights that are already ON in a zone managed by
+    Adaptive Lighting. Modes: Auto, Sleep, Bright (5500 K @ 100 %), and
+    Red (pure red @ 100 %). When `separate_turn_on` is true, brightness and
+    color are sent separately with a small stagger between lights to
+    accommodate slower Zigbee or Wi-Fi controllers.
+  domain: script
+  author: ian-walther
+  source_url: https://example.local/lighting_behavior_controller.yaml
+
+  input:
+    mode_select:
+      name: Lighting Mode input_select
+      selector:
+        entity:
+          domain: input_select
+
+    adaptive_switch:
+      name: Adaptive Lighting main switch
+      description: >
+        The primary Adaptive Lighting control switch for this zone.
+      selector:
+        entity:
+          domain: switch
+          integration: adaptive_lighting
+
+    sleep_switch:
+      name: Adaptive Lighting sleep mode switch
+      description: >
+        The "Sleep Mode" switch for this Adaptive Lighting instance.
+        This will be toggled on/off automatically when switching to/from Sleep mode.
+      selector:
+        entity:
+          domain: switch
+          integration: adaptive_lighting
+
+    target_lights:
+      name: Lights in this zone
+      description: >
+        The light entities managed by this Adaptive Lighting instance.
+        These will be adjusted when the lighting mode changes.
+      selector:
+        target:
+          entity:
+            domain: light
+
+    separate_turn_on:
+      name: Separate brightness / color commands
+      description: >
+        Enable if this zone includes controllers that require separate
+        brightness and color updates (e.g. Zigbee LED strips). When enabled,
+        commands are staggered slightly between lights.
+      default: false
+      selector:
+        boolean: {}
+
+    transition:
+      name: Transition seconds
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.5
+          mode: slider
+          unit_of_measurement: s
+
+mode: restart
+max_exceeded: silent
+
+sequence:
+  - variables:
+      mode_select_entity: !input mode_select
+      adaptive: !input adaptive_switch
+      sleep_mode: !input sleep_switch
+      target: !input target_lights
+      separate: !input separate_turn_on
+      transition: !input transition
+      mode: "{{ states(mode_select_entity) }}"
+      lights_on: >
+        {% set all = expand(target.entity_id) %}
+        {{ all | selectattr('state', 'eq', 'on') | map(attribute='entity_id') | list }}
+
+  - condition: template
+    value_template: "{{ lights_on | length > 0 }}"
+
+  - choose:
+
+      # 🟢 AUTO
+      - conditions: "{{ mode == 'Auto' }}"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: "{{ sleep_mode }}"
+          - service: switch.turn_on
+            target:
+              entity_id: "{{ adaptive }}"
+          - service: adaptive_lighting.apply
+            data:
+              entity_id: "{{ adaptive }}"
+              lights: "{{ lights_on }}"
+
+      # 🌙 SLEEP
+      - conditions: "{{ mode == 'Sleep' }}"
+        sequence:
+          - service: switch.turn_on
+            target:
+              entity_id: "{{ sleep_mode }}"
+          - service: adaptive_lighting.apply
+            data:
+              entity_id: "{{ adaptive }}"
+              lights: "{{ lights_on }}"
+
+      # 💡 BRIGHT (5500 K @ 100 %)
+      - conditions: "{{ mode == 'Bright' }}"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: 
+                - "{{ adaptive }}"
+                - "{{ sleep_mode }}"
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ separate }}"
+                sequence:
+                  - repeat:
+                      for_each: "{{ lights_on }}"
+                      sequence:
+                        - service: light.turn_on
+                          target:
+                            entity_id: "{{ repeat.item }}"
+                          data:
+                            brightness_pct: 100
+                            transition: "{{ transition }}"
+                        - delay: "0.2"
+                        - service: light.turn_on
+                          target:
+                            entity_id: "{{ repeat.item }}"
+                          data:
+                            color_temp: 182  # ≈5500 K
+                            transition: "{{ transition }}"
+                        - delay: "0.2"
+            default:
+              - service: light.turn_on
+                target:
+                  entity_id: "{{ lights_on }}"
+                data:
+                  brightness_pct: 100
+                  color_temp: 182
+                  transition: "{{ transition }}"
+
+      # 🔴 RED (pure red @ 100 %)
+      - conditions: "{{ mode == 'Red' }}"
+        sequence:
+          - service: switch.turn_off
+            target:
+              entity_id: 
+                - "{{ adaptive }}"
+                - "{{ sleep_mode }}"
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ separate }}"
+                sequence:
+                  - repeat:
+                      for_each: "{{ lights_on }}"
+                      sequence:
+                        - service: light.turn_on
+                          target:
+                            entity_id: "{{ repeat.item }}"
+                          data:
+                            brightness_pct: 100
+                            transition: "{{ transition }}"
+                        - delay: "0.2"
+                        - service: light.turn_on
+                          target:
+                            entity_id: "{{ repeat.item }}"
+                          data:
+                            hs_color: [0, 100]
+                            transition: "{{ transition }}"
+                        - delay: "0.2"
+            default:
+              - service: light.turn_on
+                target:
+                  entity_id: "{{ lights_on }}"
+                data:
+                  brightness_pct: 100
+                  hs_color: [0, 100]
+                  transition: "{{ transition }}"
