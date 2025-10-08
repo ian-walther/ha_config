@@ -906,3 +906,28 @@ asdf:
       separate_turn_on: true
   alias: light_mode-garage
   description: ''
+light_mode_main_floor:
+  use_blueprint:
+    path: homeassistant/lighting_behavior_controller.yaml
+    input:
+      mode_select: input_select.main_floor_lighting_mode
+      adaptive_switch: switch.adaptive_lighting_main_floor
+      target_lights:
+        entity_id:
+        - light.bar_accent_light
+        - light.bar
+        - light.living_room_lamps
+        - light.living_room_recessed_lights
+        - light.dining_ceiling
+        - light.dining_table_light
+        - light.kitchen_cabinet_lights
+        - light.kitchen_pendant_lights
+        - light.kitchen_recessed_lights
+        - light.office_display_cabinet_light
+        - light.office_lamps
+        - light.office_cove_light
+        - light.office_overhead
+      sleep_switch: switch.adaptive_lighting_sleep_mode_main_floor
+      separate_turn_on: true
+  alias: light_mode-main_floor
+  description: ''

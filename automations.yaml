@@ -1331,11 +1331,12 @@
           target:
             entity_id: light.garage
       button_3:
-      - action: switch.toggle
+      - action: input_select.select_option
         metadata: {}
-        data: {}
+        data:
+          option: Auto
         target:
-          entity_id: switch.adaptive_lighting_garage
+          entity_id: input_select.garage_lighting_mode
       button_2_double:
       - action: switch.turn_on
         metadata: {}
@@ -1349,32 +1350,19 @@
         target:
           entity_id: switch.garage_fan_new
       button_3_double:
-      - if:
-        - condition: state
-          entity_id: switch.adaptive_lighting_sleep_mode_garage
-          state: 'off'
-        then:
-        - action: switch.turn_on
-          metadata: {}
-          data: {}
-          target:
-            entity_id: switch.adaptive_lighting_garage
-        - delay:
-            hours: 0
-            minutes: 0
-            seconds: 0
-            milliseconds: 500
-        - action: switch.turn_on
-          metadata: {}
-          data: {}
-          target:
-            entity_id: switch.adaptive_lighting_sleep_mode_garage
-        else:
-        - action: switch.turn_off
-          metadata: {}
-          data: {}
-          target:
-            entity_id: switch.adaptive_lighting_sleep_mode_garage
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Bright
+        target:
+          entity_id: input_select.garage_lighting_mode
+      button_3_triple:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Red
+        target:
+          entity_id: input_select.garage_lighting_mode
 - id: '1758154386941'
   alias: Garage Adaptive Lighting Off
   description: ''
@@ -1462,6 +1450,19 @@
   conditions: []
   actions:
   - action: script.asdf
+    metadata: {}
+    data: {}
+  mode: single
+- id: '1759968991905'
+  alias: Light Mode Main Floor
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.main_floor_lighting_mode
+  conditions: []
+  actions:
+  - action: script.light_mode_main_floor
     metadata: {}
     data: {}
   mode: single
