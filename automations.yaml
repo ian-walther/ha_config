@@ -798,34 +798,8 @@
         data: {}
         target:
           entity_id: switch.office_fountain
-- id: '1739896638393'
-  alias: Living Room Stairs Pico
-  description: ''
-  use_blueprint:
-    path: lutron-pico.yaml
-    input:
-      pico_remote: fb0faded3be34e155f39d1c73f57e643
-      top_on:
-      - action: light.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: light.hallway
-      bottom_off:
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id: light.hallway
-      middle_stop:
-      - action: switch.toggle
-        metadata: {}
-        data: {}
-        target:
-          entity_id: switch.adaptive_lighting_sleep_mode_hallway
 - id: '1739896660760'
-  alias: Upstairs Hallway Pico
+  alias: 'Hallway Pico: Bedroom'
   description: ''
   use_blueprint:
     path: lutron-pico.yaml
@@ -845,11 +819,27 @@
         target:
           entity_id: light.hallway
       middle_stop:
-      - action: switch.toggle
+      - action: input_select.select_option
         metadata: {}
-        data: {}
+        data:
+          option: Auto
         target:
-          entity_id: switch.adaptive_lighting_sleep_mode_hallway
+          entity_id: input_select.hallway_lighting_mode
+      top_on_release: []
+      down_lower:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Sleep
+        target:
+          entity_id: input_select.hallway_lighting_mode
+      up_raise:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Bright
+        target:
+          entity_id: input_select.hallway_lighting_mode
 - id: '1741203656368'
   alias: Master Bath Door Opened
   description: ''
@@ -1001,32 +991,6 @@
         data: {}
         target:
           entity_id: switch.adaptive_lighting_sleep_mode_master_sitting_area
-- id: '1750688745671'
-  alias: Hallway Guest Rooms Pico
-  description: ''
-  use_blueprint:
-    path: lutron-pico.yaml
-    input:
-      pico_remote: 4be64a5d963440f5c7724ddc3a12625b
-      top_on:
-      - action: light.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: light.hallway
-      bottom_off:
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id: light.hallway
-      middle_stop:
-      - action: switch.toggle
-        metadata: {}
-        data: {}
-        target:
-          entity_id: switch.adaptive_lighting_sleep_mode_hallway
 - id: '1752171910091'
   alias: Master Bedroom Other Night Stand Pico
   description: ''
@@ -1181,26 +1145,6 @@
       lamps_group: light.bar_accent_light
       enable_all_button: true
       all_group: light.bar_all_lights
-- id: '1757208046896'
-  alias: Kitchen Cooking Lights Pico
-  description: ''
-  use_blueprint:
-    path: pico_room_lights_minimal.yaml
-    input:
-      pico_remote: 3f016d73a85cba52911b8ad07be3999b
-      ceiling_group: light.kitchen_recessed_lights
-      lamps_group: light.kitchen_cooking_lights_hanging
-      all_group: light.kitchen_cooking_lights
-- id: '1757208102017'
-  alias: Kitchen Dining Lights Pico
-  description: ''
-  use_blueprint:
-    path: pico_room_lights_minimal.yaml
-    input:
-      pico_remote: 04151c2ecb6f02ce23f5ba33b6482f09
-      ceiling_group: light.dining_ceiling
-      lamps_group: light.dining_table_light
-      all_group: light.dining_lights
 - id: '1757208241536'
   alias: Kitchen Stairs Other Pico
   description: ''
@@ -1209,8 +1153,8 @@
     input:
       pico_remote: 3c8b70092071cbac0d57862cee0ba170
       ceiling_group: light.kitchen_ceiling
-      lamps_group: light.kitchen_hanging_lights
-      all_group: light.kitchen_all_lights
+      lamps_group: light.kitchen_hanging
+      all_group: light.kitchen_hue
 - id: '1757208476669'
   alias: Guest Room Wall Pico
   description: ''
@@ -1268,10 +1212,10 @@
     path: pico_room_lights_minimal.yaml
     input:
       pico_remote: 26423efa93852902db8e76d1c85e47e9
-      ceiling_group: light.office_ceiling_lights
-      lamps_group: light.office_lamps_2
+      ceiling_group: light.office_overhead
+      lamps_group: light.office_lamps
       enable_all_button: true
-      all_group: light.office_all_lights
+      all_group: light.ians_office
 - id: '1757259555409'
   alias: Living Room Audio Pico
   description: ''
@@ -1386,26 +1330,6 @@
     target:
       entity_id: light.garage
   mode: single
-- id: '1758806231476'
-  alias: Kitchen Bar Pico
-  description: ''
-  use_blueprint:
-    path: pico_room_lights_minimal.yaml
-    input:
-      pico_remote: e76082aa8ec8c1f5f0372eb2c0d68816
-      ceiling_group: light.bar
-      lamps_group: light.bar_accent_light
-      all_group: light.bar_all_lights
-- id: '1758848524521'
-  alias: Kitchen Accent Light Pico
-  description: ''
-  use_blueprint:
-    path: pico_room_lights_minimal.yaml
-    input:
-      pico_remote: 0cceb801c66053bdab665f01667d90a2
-      ceiling_group: light.kitchen_ceiling
-      lamps_group: light.kitchen_hanging_lights
-      all_group: light.kitchen_all_lights
 - id: '1759271072037'
   alias: Basement Door Opened
   description: ''
@@ -1466,3 +1390,181 @@
     metadata: {}
     data: {}
   mode: single
+- id: '1760148798060'
+  alias: Light Mode Hallway
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - input_select.hallway_lighting_mode
+  conditions: []
+  actions:
+  - action: script.light_mode_hallway
+    metadata: {}
+    data: {}
+  mode: single
+- id: '1760149381822'
+  alias: 'Hallway Pico: Guest Rooms'
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: 4be64a5d963440f5c7724ddc3a12625b
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.hallway
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.hallway
+      middle_stop:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Auto
+        target:
+          entity_id: input_select.hallway_lighting_mode
+      top_on_release: []
+      down_lower:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Sleep
+        target:
+          entity_id: input_select.hallway_lighting_mode
+      up_raise:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Bright
+        target:
+          entity_id: input_select.hallway_lighting_mode
+- id: '1760149463892'
+  alias: 'Hallway Pico: Living Room'
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: fb0faded3be34e155f39d1c73f57e643
+      top_on:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.hallway
+      bottom_off:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.hallway
+      middle_stop:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Auto
+        target:
+          entity_id: input_select.hallway_lighting_mode
+      top_on_release: []
+      down_lower:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Sleep
+        target:
+          entity_id: input_select.hallway_lighting_mode
+      up_raise:
+      - action: input_select.select_option
+        metadata: {}
+        data:
+          option: Bright
+        target:
+          entity_id: input_select.hallway_lighting_mode
+- id: '1763506450396'
+  alias: Kitchen Accent Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: d3c3d64149e5730d7225b8bfc00bb14e
+      ceiling_group: light.kitchen_cabinet_lights
+      lamps_group: light.kitchen_cabinet_lights
+      all_group: light.kitchen_cabinet_lights
+- id: '1763506615704'
+  alias: Kitchen All Lights Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 0cceb801c66053bdab665f01667d90a2
+      ceiling_group: light.kitchen_ceiling
+      lamps_group: light.kitchen_hanging
+      all_group: light.kitchen_hue
+- id: '1763506729928'
+  alias: Kitchen Bar Accent Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: e76082aa8ec8c1f5f0372eb2c0d68816
+      ceiling_group: light.bar_upper_accent_light
+      lamps_group: light.bar_lower_accent_light
+      all_group: light.bar_accent_lights
+- id: '1763507326561'
+  alias: Bar Ceiling Pico
+  description: ''
+  use_blueprint:
+    path: exciton/pico_two_button.yaml
+    input:
+      pico_remote:
+      - d75f0b3bc9a4c91a649583e6d91ac0ec
+      button_0_press:
+      - action: light.turn_on
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.bar
+      button_1_press:
+      - action: light.turn_off
+        metadata: {}
+        data:
+          transition: 2
+        target:
+          entity_id: light.bar
+- id: '1763507436344'
+  alias: Kitchen Cooking Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 3f016d73a85cba52911b8ad07be3999b
+      ceiling_group: light.kitchen_recessed_lights
+      lamps_group: light.kitchen_pendant_lights
+      all_group: light.cooking_lights
+- id: '1763507576597'
+  alias: Kitchen Dining Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 04151c2ecb6f02ce23f5ba33b6482f09
+      ceiling_group: light.dining_ceiling
+      lamps_group: light.dining_table_light
+      all_group: light.dining_lights
+- id: '1763508013306'
+  alias: Office Accent Pico
+  description: ''
+  use_blueprint:
+    path: pico_room_lights_minimal.yaml
+    input:
+      pico_remote: 26b4eea8be055ce0d21f85031f7f5f84
+      ceiling_group: light.office_cove_light
+      lamps_group: light.office_display_cabinet_light
+      all_group: light.office_accent_lights

@@ -698,11 +698,18 @@ house_respond_to_change:
     then:
     - parallel:
       - sequence:
-        - action: switch.turn_off
+        - action: input_select.select_option
           metadata: {}
-          data: {}
+          data:
+            option: Auto
           target:
-            entity_id: switch.adaptive_lighting_sleep_mode_main_floor
+            entity_id: input_select.main_floor_lighting_mode
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: Auto
+          target:
+            entity_id: input_select.hallway_lighting_mode
         - action: switch.turn_off
           metadata: {}
           data: {}
@@ -710,11 +717,6 @@ house_respond_to_change:
             entity_id:
             - switch.kitchen_air_cleaner_switch
             - switch.living_room_air_cleaner_switch
-        - action: switch.turn_off
-          metadata: {}
-          data: {}
-          target:
-            entity_id: switch.adaptive_lighting_sleep_mode_hallway
         - action: switch.turn_off
           metadata: {}
           data: {}
@@ -738,6 +740,12 @@ house_respond_to_change:
     else:
     - parallel:
       - sequence:
+        - action: input_select.select_option
+          metadata: {}
+          data:
+            option: Sleep
+          target:
+            entity_id: input_select.hallway_lighting_mode
         - action: switch.turn_on
           metadata: {}
           data: {}
@@ -745,12 +753,6 @@ house_respond_to_change:
             entity_id:
             - switch.kitchen_air_cleaner_switch
             - switch.living_room_air_cleaner_switch
-        - action: switch.turn_on
-          metadata: {}
-          data: {}
-          target:
-            entity_id:
-            - switch.adaptive_lighting_sleep_mode_hallway
         - action: switch.turn_on
           metadata: {}
           data: {}
@@ -774,46 +776,6 @@ house_respond_to_change:
         data: {}
         enabled: false
   alias: house-respond_to_change
-  description: ''
-alarm_set_to_630:
-  sequence:
-  - action: input_datetime.set_datetime
-    metadata: {}
-    data:
-      time: 06:30:00
-    target:
-      entity_id: input_datetime.alarm_time
-  alias: alarm_set-to-630
-  description: ''
-alarm_set_to_7:
-  sequence:
-  - action: input_datetime.set_datetime
-    metadata: {}
-    data:
-      time: 07:00:00
-    target:
-      entity_id: input_datetime.alarm_time
-  alias: alarm_set-to-700
-  description: ''
-alarm_set_to_730:
-  sequence:
-  - action: input_datetime.set_datetime
-    metadata: {}
-    data:
-      time: 07:30:00
-    target:
-      entity_id: input_datetime.alarm_time
-  alias: alarm_set-to-730
-  description: ''
-alarm_set_to_800:
-  sequence:
-  - action: input_datetime.set_datetime
-    metadata: {}
-    data:
-      time: 08:00:00
-    target:
-      entity_id: input_datetime.alarm_time
-  alias: alarm_set-to-800
   description: ''
 apply_kelvin_map:
   alias: Apply Kelvin map (2000–6500K; fake 2000–2700K)
@@ -930,4 +892,16 @@ light_mode_main_floor:
       sleep_switch: switch.adaptive_lighting_sleep_mode_main_floor
       separate_turn_on: true
   alias: light_mode-main_floor
+  description: ''
+light_mode_hallway:
+  use_blueprint:
+    path: homeassistant/lighting_behavior_controller.yaml
+    input:
+      mode_select: input_select.hallway_lighting_mode
+      adaptive_switch: switch.adaptive_lighting_hallway
+      target_lights:
+        entity_id: light.hallway
+      sleep_switch: switch.adaptive_lighting_sleep_mode_hallway
+      separate_turn_on: true
+  alias: light_mode-hallway
   description: ''

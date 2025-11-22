@@ -1,0 +1,157 @@
+blueprint:
+  name: Lutron Caseta Two Button Pico Actions
+  description: Short and long press automations for Pico two button remotes. Release
+    actions will always fire. Short press actions will fire on button release if long
+    press actions are defined, and immediately on button press otherwise. Long press
+    actions will fire on release timeout.
+  domain: automation
+  input:
+    pico_remote:
+      name: Pico Two Button Remote
+      selector:
+        device:
+          model: PJ2-2B-GXX-X01 (Pico2Button)
+          multiple: true
+    button_0_press:
+      name: On Button - Short press
+      default: []
+      selector:
+        action: {}
+    button_0_hold:
+      name: On Button - Long press
+      default: []
+      selector:
+        action: {}
+    button_0_release:
+      name: On Button - Release
+      default: []
+      selector:
+        action: {}
+    button_1_press:
+      name: Off Button - Short press
+      default: []
+      selector:
+        action: {}
+    button_1_hold:
+      name: Off Button - Long press
+      default: []
+      selector:
+        action: {}
+    button_1_release:
+      name: Off Button - Release
+      default: []
+      selector:
+        action: {}
+    time_before_long_press:
+      name: Time before long press
+      description: Amount of time button needs to be held before triggering "long
+        press" action.
+      default: 1
+      selector:
+        number:
+          min: 0.25
+          max: 10.0
+          step: 0.25
+          unit_of_measurement: seconds
+          mode: slider
+    auto_mode:
+      name: Automation Mode
+      description: Mode that automation runs in (single,  restart, queued, parallel).
+      default: parallel
+      selector:
+        select:
+          options:
+          - single
+          - restart
+          - queued
+          - parallel
+          multiple: false
+          custom_value: false
+          sort: false
+    mode_max:
+      name: Mode Max (ignored by Single and Restart Modes)
+      description: Maximum number of runs that can be executed or queued at a time.
+      default: 10
+      selector:
+        number:
+          min: 1.0
+          max: 15.0
+          step: 1.0
+          mode: slider
+  source_url: https://gist.github.com/exciton/dc91eb4fba4fa724c5a82d11fe44d2d1
+trigger:
+- platform: event
+  event_type: lutron_caseta_button_event
+  event_data:
+    type: Pico2Button
+variables:
+  button_numbers:
+  - 2
+  - 4
+  device_ids: !input pico_remote
+  button_0_hold_actions: !input button_0_hold
+  button_1_hold_actions: !input button_1_hold
+condition:
+- condition: template
+  value_template: '{{ trigger.event.data.device_id in device_ids }}'
+action:
+- choose:
+  - conditions: '{{ trigger.event.data.action == "release" }}'
+    sequence:
+    - choose:
+      - conditions: '{{ trigger.event.data.button_number == button_numbers[0] }}'
+        sequence: !input button_0_release
+      - conditions: '{{ trigger.event.data.button_number == button_numbers[1] }}'
+        sequence: !input button_1_release
+  - conditions: '{{ trigger.event.data.action == "press" }}'
+    sequence:
+    - choose:
+      - conditions: '{{ trigger.event.data.button_number == button_numbers[0] }}'
+        sequence:
+        - choose:
+          - conditions:
+            - condition: template
+              value_template: '{{button_0_hold_actions != []}}'
+            sequence:
+            - wait_for_trigger:
+              - platform: event
+                event_type: lutron_caseta_button_event
+                event_data:
+                  button_number: '{{ trigger.event.data.button_number }}'
+                  action: release
+                  device_id: '{{ trigger.event.data.device_id }}'
+              timeout: !input time_before_long_press
+            - choose:
+              - conditions:
+                - condition: template
+                  value_template: '{{ not wait.trigger }}'
+                sequence: !input button_0_hold
+              default: !input button_0_press
+          default: !input button_0_press
+      - conditions: '{{ trigger.event.data.button_number == button_numbers[1] }}'
+        sequence:
+        - choose:
+          - conditions:
+            - condition: template
+              value_template: '{{button_1_hold_actions != []}}'
+            sequence:
+            - wait_for_trigger:
+              - platform: event
+                event_type: lutron_caseta_button_event
+                event_data:
+                  button_number: '{{ trigger.event.data.button_number }}'
+                  action: release
+                  device_id: '{{ trigger.event.data.device_id }}'
+              timeout: !input time_before_long_press
+            - choose:
+              - conditions:
+                - condition: template
+                  value_template: '{{ not wait.trigger }}'
+                sequence: !input button_1_hold
+              default: !input button_1_press
+          default: !input button_1_press
+  default: []
+mode: !input auto_mode
+max: !input mode_max
+trace:
+  stored_traces: 10

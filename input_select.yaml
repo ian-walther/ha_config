@@ -16,3 +16,12 @@ garage_lighting_mode:
     - Red
   icon: mdi:lightbulb-auto
   initial: Auto
+hallway_lighting_mode:
+  name: Hallway Lighting Mode
+  options:
+    - Auto
+    - Bright
+    - Sleep
+    - Red
+  icon: mdi:lightbulb-auto
+  initial: Auto
