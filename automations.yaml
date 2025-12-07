@@ -318,7 +318,7 @@
     metadata: {}
     data: {}
     target:
-      entity_id: switch.garage_space_heater_2
+      entity_id: switch.garage_space_heater_2_2
   mode: single
 - id: '1733937101595'
   alias: Is Someone Home
@@ -394,7 +394,7 @@
     metadata: {}
     data: {}
     target:
-      entity_id: switch.garage_space_heater
+      entity_id: switch.garage_space_heater_1
   mode: single
 - id: '1736097102789'
   alias: Turn On Both Garage Space Heaters
@@ -414,8 +414,8 @@
     data: {}
     target:
       entity_id:
-      - switch.garage_space_heater
-      - switch.garage_space_heater_2
+      - switch.garage_space_heater_2_2
+      - switch.garage_space_heater_1
   mode: single
 - id: '1736097951472'
   alias: Turn Off Auto Heat Garage
@@ -433,8 +433,8 @@
     data: {}
     target:
       entity_id:
-      - switch.garage_space_heater
-      - switch.garage_space_heater_2
+      - switch.garage_space_heater_2_2
+      - switch.garage_space_heater_1
   mode: single
 - id: '1736098135350'
   alias: Turn On Auto Heat Garage
@@ -458,8 +458,8 @@
         data: {}
         target:
           entity_id:
-          - switch.garage_space_heater
-          - switch.garage_space_heater_2
+          - switch.garage_space_heater_2_2
+          - switch.garage_space_heater_1
     - conditions:
       - condition: numeric_state
         entity_id: sensor.garage_temperature
@@ -469,20 +469,20 @@
         metadata: {}
         data: {}
         target:
-          entity_id: switch.garage_space_heater
+          entity_id: switch.garage_space_heater_1
       - action: switch.turn_off
         metadata: {}
         data: {}
         target:
-          entity_id: switch.garage_space_heater_2
+          entity_id: switch.garage_space_heater_2_2
     default:
     - action: switch.turn_off
       metadata: {}
       data: {}
       target:
         entity_id:
-        - switch.garage_space_heater
-        - switch.garage_space_heater_2
+        - switch.garage_space_heater_2_2
+        - switch.garage_space_heater_1
   mode: single
 - id: '1736175459196'
   alias: Turn on Garage Space Heater 1
@@ -501,8 +501,7 @@
     metadata: {}
     data: {}
     target:
-      entity_id:
-      - switch.garage_space_heater
+      entity_id: switch.garage_space_heater_1
   mode: single
 - id: '1736711553909'
   alias: Office Humidifier Button
@@ -867,9 +866,10 @@
     else:
     - action: light.turn_on
       metadata: {}
-      data: {}
+      data:
+        transition: 1
       target:
-        area_id: master_bathroom
+        entity_id: light.master_bathroom_lights
   mode: single
 - id: '1741220937283'
   alias: Is Bedtime
@@ -1141,10 +1141,10 @@
     path: pico_room_lights_minimal.yaml
     input:
       pico_remote: 0ddc4b37007212667d7d75461130e56a
-      ceiling_group: light.bar
-      lamps_group: light.bar_accent_light
+      ceiling_group: light.living_room_cabinet_light
+      lamps_group: light.living_room_cabinet_light
       enable_all_button: true
-      all_group: light.bar_all_lights
+      all_group: light.living_room_cabinet_light
 - id: '1757208241536'
   alias: Kitchen Stairs Other Pico
   description: ''
@@ -1494,9 +1494,9 @@
     path: pico_room_lights_minimal.yaml
     input:
       pico_remote: d3c3d64149e5730d7225b8bfc00bb14e
-      ceiling_group: light.kitchen_cabinet_lights
-      lamps_group: light.kitchen_cabinet_lights
-      all_group: light.kitchen_cabinet_lights
+      ceiling_group: light.kitchen_upper_cabinet_lights
+      lamps_group: light.kitchen_lower_cabinet_lights
+      all_group: light.kitchen_cabinet_lights_2
 - id: '1763506615704'
   alias: Kitchen All Lights Pico
   description: ''
@@ -1568,3 +1568,23 @@
       ceiling_group: light.office_cove_light
       lamps_group: light.office_display_cabinet_light
       all_group: light.office_accent_lights
+- id: '1764950194888'
+  alias: Master Bathroom Fan Timer
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: e1f8da05f40d572a9d07d17b8ca6907d
+    entity_id: 8a4a20d74379ad8951b8c20e59e2694d
+    domain: light
+    trigger: device
+    for:
+      hours: 1
+      minutes: 30
+      seconds: 0
+  conditions: []
+  actions:
+  - type: turn_off
+    device_id: e1f8da05f40d572a9d07d17b8ca6907d
+    entity_id: 8a4a20d74379ad8951b8c20e59e2694d
+    domain: light
+  mode: single
