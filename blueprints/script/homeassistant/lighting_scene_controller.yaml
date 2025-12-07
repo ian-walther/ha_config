@@ -1,0 +1,269 @@
+blueprint:
+  name: Lighting Scene Controller
+  description: >
+    Apply lighting scenes with adaptive lighting override control.
+    Specify which lights turn on, all others in the pool turn off.
+    Control circadian mode vs override mode with fixed brightness/temperature.
+  domain: script
+  input:
+    zone_name:
+      name: Zone Name
+      description: >
+        Name of the lighting zone (must match your adaptive lighting instance name exactly).
+        Examples: main_floor, garage, master_suite, hallway
+      selector:
+        text:
+    light_pool:
+      name: Light Pool
+      description: All lights that can be controlled in this zone
+      selector:
+        target:
+          entity:
+            domain: light
+    lights_on:
+      name: Lights to Turn ON
+      description: Which lights from the pool should be ON (others turn OFF)
+      default: []
+      selector:
+        entity:
+          domain: light
+          multiple: true
+    override_enabled:
+      name: Enable Override Mode
+      description: Use fixed brightness/temperature instead of circadian adaptation
+      default: false
+      selector:
+        boolean:
+    override_brightness:
+      name: Override Brightness
+      description: Brightness percentage (only used when override enabled)
+      default: 100
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+          mode: slider
+    override_temperature:
+      name: Override Color Temperature
+      description: Color temperature in Kelvin (only used when override enabled)
+      default: 3500
+      selector:
+        number:
+          min: 2000
+          max: 6500
+          step: 100
+          mode: slider
+
+    # ---- Timing & reliability knobs (defaults chosen for Zigbee/Hue friendliness) ----
+    per_call_delay_ms:
+      name: Per-call delay for lights (ms)
+      description: Delay between each light command to avoid network congestion
+      default: 300
+      selector:
+        number:
+          min: 0
+          max: 2000
+          step: 10
+          mode: slider
+    jitter_ms:
+      name: Jitter (±ms)
+      description: Random variation added to each per-call delay to avoid bursts
+      default: 75
+      selector:
+        number:
+          min: 0
+          max: 1000
+          step: 5
+          mode: slider
+    confirm_timeout_s:
+      name: Confirm timeout for lights (s)
+      description: How long to wait for light state confirmation
+      default: 1.2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.1
+          mode: slider
+    max_retries:
+      name: Max retries per entity (after initial attempt)
+      description: Number of times to retry if light doesn't respond
+      default: 1
+      selector:
+        number:
+          min: 0
+          max: 3
+          step: 1
+          mode: slider
+    retry_gap_ms:
+      name: Retry gap (ms)
+      description: Delay before retrying a failed command
+      default: 900
+      selector:
+        number:
+          min: 0
+          max: 5000
+          step: 50
+          mode: slider
+    off_transition_s:
+      name: Turn_off transition for lights (s)
+      description: Smooth transition when turning lights off
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 10
+          step: 0.5
+          mode: slider
+
+mode: queued
+max: 10
+
+variables:
+  # Raw inputs
+  zone_name: !input zone_name
+  light_pool: !input light_pool
+  lights_on_pick: !input lights_on
+  override_enabled: !input override_enabled
+  override_brightness: !input override_brightness
+  override_temperature: !input override_temperature
+  per_call_delay_ms: !input per_call_delay_ms
+  jitter_ms: !input jitter_ms
+  confirm_timeout_s: !input confirm_timeout_s
+  max_retries: !input max_retries
+  retry_gap_ms: !input retry_gap_ms
+  off_transition_s: !input off_transition_s
+
+  # Expand light_pool to entity list using Target selector logic
+  lights_pool_ids: >-
+    {% set tgt = light_pool if light_pool is defined else {} %}
+    {% set ns = namespace(ids=[]) %}
+    {% if tgt is mapping %}
+      {% if tgt.entity_id %}
+        {% set ns.ids = ns.ids + (tgt.entity_id if tgt.entity_id is list else [tgt.entity_id]) %}
+      {% endif %}
+      {% if tgt.area_id %}
+        {% for a in (tgt.area_id if tgt.area_id is list else [tgt.area_id]) %}
+          {% set ns.ids = ns.ids + (area_entities(a) | select('match','^light\.') | list) %}
+        {% endfor %}
+      {% endif %}
+      {% if tgt.device_id %}
+        {% for d in (tgt.device_id if tgt.device_id is list else [tgt.device_id]) %}
+          {% set ns.ids = ns.ids + (device_entities(d) | select('match','^light\.') | list) %}
+        {% endfor %}
+      {% endif %}
+      {% if tgt.label_id %}
+        {% for l in (tgt.label_id if tgt.label_id is list else [tgt.label_id]) %}
+          {% set ns.ids = ns.ids + (label_entities(l) | select('match','^light\.') | list) %}
+        {% endfor %}
+      {% endif %}
+    {% endif %}
+    {{ ns.ids | unique | list }}
+
+  # Sanitize lights_on to only include entities that exist in pool
+  lights_on_ids: >-
+    {{ (lights_on_pick | default([])) | select('in', lights_pool_ids) | list }}
+
+  # Calculate lights_off (pool - lights_on)
+  lights_off_ids: >-
+    {{ (lights_pool_ids | reject('in', lights_on_ids) | list) }}
+
+sequence:
+  - parallel:
+      # ---- LIGHTS BRANCH ----
+      - sequence:
+          - alias: "Lights: Turn ON selected lights"
+            repeat:
+              for_each: "{{ lights_on_ids }}"
+              sequence:
+                - variables: { target: "{{ repeat.item }}", desired: "on" }
+                # Retry loop with state confirmation
+                - repeat:
+                    while:
+                      - condition: template
+                        value_template: >
+                          {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                    sequence:
+                      # Bare turn_on call - let Adaptive Lighting handle brightness/color
+                      - service: light.turn_on
+                        target: { entity_id: "{{ target }}" }
+                      # Wait for state confirmation with timeout
+                      - wait_template: "{{ is_state(target, desired) }}"
+                        timeout: "{{ confirm_timeout_s }}"
+                        continue_on_timeout: true
+                      # Gap before retry
+                      - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                # Per-call delay with jitter
+                - delay:
+                    milliseconds: >
+                      {% set base = per_call_delay_ms|int %}
+                      {% set j = jitter_ms|int %}
+                      {% set offsets = range(-j, j+1)|list %}
+                      {% set d = base + (offsets|random) %}
+                      {{ [d, 0]|max }}
+
+          - alias: "Lights: Turn OFF other lights in pool"
+            repeat:
+              for_each: "{{ lights_off_ids }}"
+              sequence:
+                - variables: { target: "{{ repeat.item }}", desired: "off" }
+                # Retry loop with state confirmation
+                - repeat:
+                    while:
+                      - condition: template
+                        value_template: >
+                          {{ not is_state(target, desired) and repeat.index <= (1 + (max_retries|int)) }}
+                    sequence:
+                      # Turn off with smooth transition
+                      - service: light.turn_off
+                        target: { entity_id: "{{ target }}" }
+                        data: { transition: "{{ off_transition_s }}" }
+                      # Wait for state confirmation with timeout
+                      - wait_template: "{{ is_state(target, desired) }}"
+                        timeout: "{{ confirm_timeout_s }}"
+                        continue_on_timeout: true
+                      # Gap before retry
+                      - delay: { milliseconds: "{{ retry_gap_ms }}" }
+                # Per-call delay with jitter
+                - delay:
+                    milliseconds: >
+                      {% set base = per_call_delay_ms|int %}
+                      {% set j = jitter_ms|int %}
+                      {% set offsets = range(-j, j+1)|list %}
+                      {% set d = base + (offsets|random) %}
+                      {{ [d, 0]|max }}
+
+      # ---- ADAPTIVE LIGHTING OVERRIDE BRANCH ----
+      - sequence:
+          - choose:
+              # If override_enabled = false, turn off override switch
+              - conditions:
+                  - condition: template
+                    value_template: "{{ not override_enabled }}"
+                sequence:
+                  - service: switch.turn_off
+                    target:
+                      entity_id: "switch.adaptive_lighting_override_mode_{{ zone_name }}"
+                    continue_on_error: true
+            default:
+              # If override_enabled = true, set values FIRST, then enable switch
+              # Step 1: Set brightness number
+              - service: number.set_value
+                target:
+                  entity_id: "number.adaptive_lighting_override_brightness_{{ zone_name }}"
+                data:
+                  value: "{{ override_brightness }}"
+                continue_on_error: true
+              # Step 2: Set temperature number
+              - service: number.set_value
+                target:
+                  entity_id: "number.adaptive_lighting_override_color_temperature_{{ zone_name }}"
+                data:
+                  value: "{{ override_temperature }}"
+                continue_on_error: true
+              # Step 3: Turn on override switch (AFTER setting values)
+              - service: switch.turn_on
+                target:
+                  entity_id: "switch.adaptive_lighting_override_mode_{{ zone_name }}"
+                continue_on_error: true
