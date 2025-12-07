@@ -1,0 +1,15 @@
+script:
+  studio_full_bright:
+    alias: "studio-full_bright"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: studio
+        light_pool:
+          label_id: studio_light_pool
+        lights_on:
+          - light.studio_ceiling
+          - light.studio_lamps
+        override_enabled: true
+        override_brightness: 100
+        override_temperature: 3500
