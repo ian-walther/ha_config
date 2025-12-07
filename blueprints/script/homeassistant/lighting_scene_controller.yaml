@@ -267,3 +267,16 @@ sequence:
                 target:
                   entity_id: "switch.adaptive_lighting_override_mode_{{ zone_name }}"
                 continue_on_error: true
+
+  # ---- FORCE ADAPTIVE LIGHTING TO ADAPT IMMEDIATELY ----
+  - alias: "Force Adaptive Lighting to adapt immediately"
+    delay:
+      seconds: 2  # Let lights settle from state changes
+  - service: adaptive_lighting.apply
+    data:
+      entity_id: "switch.adaptive_lighting_{{ zone_name }}"
+      lights: "{{ lights_on_ids }}"
+      turn_on_lights: false
+      adapt_brightness: true
+      adapt_color: true
+    continue_on_error: true
