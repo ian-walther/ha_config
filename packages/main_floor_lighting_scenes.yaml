@@ -1,3 +1,52 @@
+input_select:
+  main_floor_scene:
+    name: Main Floor Scene
+    options:
+      - "Full Bright"
+      - "Full Auto"
+      - "Morning Auto"
+      - "Evening Auto"
+      - "Off"
+
+automation:
+  - alias: "Main Floor Scene Controller"
+    id: main_floor_scene_controller
+    trigger:
+      - platform: state
+        entity_id: input_select.main_floor_scene
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_select.main_floor_scene
+                state: "Full Bright"
+            sequence:
+              - service: script.main_floor_full_bright
+          - conditions:
+              - condition: state
+                entity_id: input_select.main_floor_scene
+                state: "Full Auto"
+            sequence:
+              - service: script.main_floor_full_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.main_floor_scene
+                state: "Morning Auto"
+            sequence:
+              - service: script.main_floor_morning_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.main_floor_scene
+                state: "Evening Auto"
+            sequence:
+              - service: script.main_floor_evening_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.main_floor_scene
+                state: "Off"
+            sequence:
+              - service: script.main_floor_off
+
 script:
   main_floor_full_bright:
     alias: "main_floor_full_bright"
