@@ -1,3 +1,45 @@
+input_select:
+  studio_scene:
+    name: Studio Scene
+    options:
+      - "Full Bright"
+      - "Late Night"
+      - "All Auto"
+      - "Lamps Auto"
+
+automation:
+  - alias: "Studio Scene Controller"
+    id: studio_scene_controller
+    trigger:
+      - platform: state
+        entity_id: input_select.studio_scene
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_select.studio_scene
+                state: "Full Bright"
+            sequence:
+              - service: script.studio_full_bright
+          - conditions:
+              - condition: state
+                entity_id: input_select.studio_scene
+                state: "Late Night"
+            sequence:
+              - service: script.studio_late_night
+          - conditions:
+              - condition: state
+                entity_id: input_select.studio_scene
+                state: "All Auto"
+            sequence:
+              - service: script.studio_all_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.studio_scene
+                state: "Lamps Auto"
+            sequence:
+              - service: script.studio_lamps_auto
+
 script:
   studio_full_bright:
     alias: "studio_full_bright"
