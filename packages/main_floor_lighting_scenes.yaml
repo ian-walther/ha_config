@@ -1,0 +1,104 @@
+script:
+  main_floor_full_bright:
+    alias: "main_floor_full_bright"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: main_floor
+        light_pool:
+          label_id: main_floor_lights_pool
+        lights_on:
+          - light.bar
+          - light.bar_lower_accent_light
+          - light.bar_upper_accent_light
+          - light.dining_ceiling
+          - light.dining_table_light
+          - light.kitchen_lower_cabinet_lights
+          - light.kitchen_pendant_lights
+          - light.kitchen_recessed_lights
+          - light.kitchen_upper_cabinet_lights
+          - light.living_room_cabinet_light
+          - light.living_room_recessed_lights
+          - light.living_room_lamps
+          - light.office_display_cabinet_light
+          - light.office_overhead
+          - light.office_cove_light
+          - light.office_lamps
+        override_enabled: true
+        override_brightness: 100
+        override_temperature: 3500
+  main_floor_full_auto:
+    alias: "main_floor_full_auto"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: main_floor
+        light_pool:
+          label_id: main_floor_lights_pool
+        lights_on:
+          - light.bar
+          - light.bar_lower_accent_light
+          - light.bar_upper_accent_light
+          - light.dining_ceiling
+          - light.dining_table_light
+          - light.kitchen_lower_cabinet_lights
+          - light.kitchen_pendant_lights
+          - light.kitchen_recessed_lights
+          - light.kitchen_upper_cabinet_lights
+          - light.living_room_cabinet_light
+          - light.living_room_recessed_lights
+          - light.living_room_lamps
+          - light.office_display_cabinet_light
+          - light.office_overhead
+          - light.office_cove_light
+          - light.office_lamps
+        override_enabled: false
+  main_floor_morning_auto:
+    alias: "main_floor_morning_auto"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: main_floor
+        light_pool:
+          label_id: main_floor_lights_pool
+        lights_on:
+          - light.bar
+          - light.bar_lower_accent_light
+          - light.bar_upper_accent_light
+          - light.dining_ceiling
+          - light.dining_table_light
+          - light.kitchen_lower_cabinet_lights
+          - light.kitchen_pendant_lights
+          - light.kitchen_recessed_lights
+          - light.kitchen_upper_cabinet_lights
+        override_enabled: false
+  main_floor_evening_auto:
+    alias: "main_floor_evening_auto"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: main_floor
+        light_pool:
+          label_id: main_floor_lights_pool
+        lights_on:
+          - light.bar_lower_accent_light
+          - light.dining_table_light
+          - light.kitchen_lower_cabinet_lights
+          - light.kitchen_pendant_lights
+          - light.kitchen_recessed_lights
+          - light.kitchen_upper_cabinet_lights
+          - light.living_room_cabinet_light
+          - light.living_room_lamps
+          - light.office_display_cabinet_light
+          - light.office_lamps
+        override_enabled: false
+  main_floor_off:
+    alias: "main_floor_off"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: main_floor
+        light_pool:
+          label_id: main_floor_lights_pool
+        lights_on:
+        override_enabled: false
