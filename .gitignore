@@ -10,3 +10,4 @@ backups/*
 known_devices.yaml
 tts/*
 www/*
+.ha_run.lock
