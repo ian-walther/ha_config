@@ -12,11 +12,9 @@
         target:
           entity_id: media_player.kitchen
       button_1_press:
-      - action: light.turn_on
+      - action: script.main_floor_full_auto
         metadata: {}
         data: {}
-        target:
-          entity_id: light.main_floor
       turnwheel_right:
       - action: media_player.volume_up
         metadata: {}
@@ -24,24 +22,17 @@
         target:
           entity_id: media_player.kitchen
       button_2_press:
-      - action: light.toggle
+      - action: script.main_floor_morning_auto
         metadata: {}
         data: {}
-        target:
-          entity_id: light.main_floor_ceiling
       button_3_press:
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id: light.main_floor
-      button_4_press:
-      - action: light.toggle
+      - action: script.main_floor_off
         metadata: {}
         data: {}
-        target:
-          entity_id: light.main_floor_other
+      button_4_press:
+      - action: script.main_floor_evening_auto
+        metadata: {}
+        data: {}
 - id: '1706041717555'
   alias: Master Closet Door Open
   description: ''

@@ -710,6 +710,9 @@ house_respond_to_change:
             option: Auto
           target:
             entity_id: input_select.hallway_lighting_mode
+        - action: script.main_floor_morning_auto
+          metadata: {}
+          data: {}
         - action: switch.turn_off
           metadata: {}
           data: {}
@@ -723,11 +726,6 @@ house_respond_to_change:
           target:
             entity_id:
             - switch.adaptive_lighting_sleep_mode_master_bathroom
-        - action: light.turn_on
-          metadata: {}
-          data: {}
-          target:
-            entity_id: light.bar_all_lights
         - action: switch.turn_off
           metadata: {}
           data: {}
@@ -746,6 +744,9 @@ house_respond_to_change:
             option: Sleep
           target:
             entity_id: input_select.hallway_lighting_mode
+        - action: script.main_floor_off
+          metadata: {}
+          data: {}
         - action: switch.turn_on
           metadata: {}
           data: {}
@@ -759,12 +760,6 @@ house_respond_to_change:
           target:
             entity_id:
             - switch.adaptive_lighting_sleep_mode_master_bathroom
-        - action: light.turn_off
-          metadata: {}
-          data:
-            transition: 2
-          target:
-            entity_id: light.main_floor
         - action: light.turn_off
           metadata: {}
           data:
