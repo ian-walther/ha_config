@@ -17,7 +17,6 @@ script: !include scripts.yaml
 scene: !include scenes.yaml
 
 http: !include core/http.yaml
-input_select: !include input_select.yaml
 
 light:
   - platform: template

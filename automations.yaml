@@ -1355,45 +1355,6 @@
     target:
       entity_id: light.basement_main_lights
   mode: single
-- id: '1759892145308'
-  alias: Garage Light Mode
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - input_select.garage_lighting_mode
-  conditions: []
-  actions:
-  - action: script.asdf
-    metadata: {}
-    data: {}
-  mode: single
-- id: '1759968991905'
-  alias: Light Mode Main Floor
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - input_select.main_floor_lighting_mode
-  conditions: []
-  actions:
-  - action: script.light_mode_main_floor
-    metadata: {}
-    data: {}
-  mode: single
-- id: '1760148798060'
-  alias: Light Mode Hallway
-  description: ''
-  triggers:
-  - trigger: state
-    entity_id:
-    - input_select.hallway_lighting_mode
-  conditions: []
-  actions:
-  - action: script.light_mode_hallway
-    metadata: {}
-    data: {}
-  mode: single
 - id: '1760149381822'
   alias: 'Hallway Pico: Guest Rooms'
   description: ''

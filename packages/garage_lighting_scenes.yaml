@@ -1,0 +1,90 @@
+input_select:
+  garage_scene:
+    name: Garage Scene
+    options:
+      - "Bright"
+      - "Auto"
+      - "Chill"
+      - "Off"
+
+automation:
+  - alias: "Garage Scene Controller"
+    id: garage_scene_controller
+    trigger:
+      - platform: state
+        entity_id: input_select.garage_scene
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_select.garage_scene
+                state: "Bright"
+            sequence:
+              - service: script.garage_bright
+          - conditions:
+              - condition: state
+                entity_id: input_select.garage_scene
+                state: "Auto"
+            sequence:
+              - service: script.garage_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.garage_scene
+                state: "Chill"
+            sequence:
+              - service: script.garage_chill
+          - conditions:
+              - condition: state
+                entity_id: input_select.garage_scene
+                state: "Off"
+            sequence:
+              - service: script.garage_off
+
+script:
+  garage_bright:
+    alias: "garage_bright"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: garage
+        light_pool:
+          label_id: garage_lights_pool
+        lights_on:
+          - light.garage
+        override_enabled: true
+        override_brightness: 100
+        override_temperature: 4000
+  garage_auto:
+    alias: "garage_auto"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: garage
+        light_pool:
+          label_id: garage_lights_pool
+        lights_on:
+          - light.garage
+        override_enabled: false
+  garage_chill:
+    alias: "garage_chill"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: garage
+        light_pool:
+          label_id: garage_lights_pool
+        lights_on:
+          - light.garage
+        override_enabled: true
+        override_brightness: 20
+        override_temperature: 2000
+  garage_off:
+    alias: "garage_off"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: garage
+        light_pool:
+          label_id: garage_lights_pool
+        lights_on:
+        override_enabled: false

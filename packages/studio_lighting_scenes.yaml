@@ -6,6 +6,7 @@ input_select:
       - "Late Night"
       - "All Auto"
       - "Lamps Auto"
+      - "Off"
 
 automation:
   - alias: "Studio Scene Controller"
@@ -39,6 +40,12 @@ automation:
                 state: "Lamps Auto"
             sequence:
               - service: script.studio_lamps_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.studio_scene
+                state: "Off"
+            sequence:
+              - service: script.studio_off
 
 script:
   studio_full_bright:
@@ -90,4 +97,14 @@ script:
           label_id: studio_lights_pool
         lights_on:
           - light.studio_lamps
+        override_enabled: false
+  studio_off:
+    alias: "studio_off"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: studio
+        light_pool:
+          label_id: studio_lights_pool
+        lights_on:
         override_enabled: false
