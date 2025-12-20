@@ -1,0 +1,53 @@
+light:
+  - platform: template
+    lights:
+      bar_lower_accent_light:
+        unique_id: bar_lower_accent_light
+        friendly_name: "Bar Lower Accent Light"
+        value_template: "{{ state_attr('light.2nd_led_controller', 'brightness') | int > 0 }}"
+        level_template: "{{ state_attr('light.2nd_led_controller', 'brightness') | int }}"
+        min_mireds_template: 154
+        max_mireds_template: 500
+        temperature_template: >-
+          {% set src = 'light.2nd_led_controller' %}
+          {% if state_attr(src, 'color_mode') == 'color_temp' and state_attr(src, 'color_temp') is not none %}
+            {{ ((state_attr(src,'color_temp')|float - 158.0) / (495.0 - 158.0) * (370.0 - 154.0) + 154.0) | round(0) | int }}
+          {% else %}
+            370
+          {% endif %}
+        hs_template: >-
+          {% set hs = state_attr('light.2nd_led_controller','hs_color') %}
+          {% if hs is sequence and hs|length == 2 %}
+            ({{ (hs[0] | float) | round(1) }}, {{ (hs[1] | float) | round(1) }})
+          {% else %}
+            (0, 0)
+          {% endif %}
+        turn_on:
+          service: light.turn_on
+          target:
+            entity_id: light.2nd_led_controller
+        turn_off:
+          service: light.turn_off
+          target:
+            entity_id: light.2nd_led_controller
+        set_level:
+          service: light.turn_on
+          target:
+            entity_id: light.2nd_led_controller
+          data:
+            brightness: "{{ brightness }}"
+        set_temperature:
+          service: script.apply_kelvin_map
+          data:
+            entity: light.2nd_led_controller
+            ui_mired: "{{ color_temp }}"
+            transition: "{{ (transition | default(0)) | float }}"
+        set_hs:
+          service: light.turn_on
+          target:
+            entity_id: light.2nd_led_controller
+          data:
+            hs_color:
+              - "{{ h }}"
+              - "{{ s }}"
+        supports_transition_template: "{{ true }}"

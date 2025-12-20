@@ -18,10 +18,6 @@ scene: !include scenes.yaml
 
 http: !include core/http.yaml
 
-light:
-  - platform: template
-    lights: !include_dir_merge_named lights/template
-      
 samsungtv_smart:
   - host: 192.168.1.130      # replace with your Kitchen TV’s reserved IP
     mac: "10:2b:41:bf:60:56"  # the *wired* MAC
