@@ -127,23 +127,23 @@
 - id: '1706126553279'
   alias: Pantry No Motion
   description: ''
-  trigger:
+  triggers:
   - type: no_motion
-    platform: device
     device_id: 9eb7f9403abceef83b854526cfa818ba
     entity_id: 19b21c01602285f47d2a21a9669f99d5
     domain: binary_sensor
     for:
       hours: 0
       minutes: 0
-      seconds: 0
-  condition: []
-  action:
-  - service: light.turn_off
-    target:
+      seconds: 20
+    trigger: device
+  conditions: []
+  actions:
+  - target:
       device_id: b123c2faaefcd4193ccf2aac0222d516
     data:
       transition: 15
+    action: light.turn_off
   mode: single
 - id: '1706321787746'
   alias: Kitchen Pico for Foyer control

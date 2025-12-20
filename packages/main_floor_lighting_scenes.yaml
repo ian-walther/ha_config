@@ -76,6 +76,9 @@ script:
         override_enabled: true
         override_brightness: 100
         override_temperature: 3500
+        per_call_delay_ms: 150
+        jitter_ms: 38
+        confirm_timeout_s: 0.6
   main_floor_full_auto:
     alias: "main_floor_full_auto"
     use_blueprint:
@@ -102,6 +105,9 @@ script:
           - light.office_cove_light
           - light.office_lamps
         override_enabled: false
+        per_call_delay_ms: 150
+        jitter_ms: 38
+        confirm_timeout_s: 0.6
   main_floor_morning_auto:
     alias: "main_floor_morning_auto"
     use_blueprint:
@@ -121,6 +127,9 @@ script:
           - light.kitchen_recessed_lights
           - light.kitchen_upper_cabinet_lights
         override_enabled: false
+        per_call_delay_ms: 150
+        jitter_ms: 38
+        confirm_timeout_s: 0.6
   main_floor_evening_auto:
     alias: "main_floor_evening_auto"
     use_blueprint:
@@ -141,6 +150,9 @@ script:
           - light.office_display_cabinet_light
           - light.office_lamps
         override_enabled: false
+        per_call_delay_ms: 150
+        jitter_ms: 38
+        confirm_timeout_s: 0.6
   main_floor_off:
     alias: "main_floor_off"
     use_blueprint:
@@ -151,3 +163,6 @@ script:
           label_id: main_floor_lights_pool
         lights_on:
         override_enabled: false
+        per_call_delay_ms: 150
+        jitter_ms: 38
+        confirm_timeout_s: 0.6
