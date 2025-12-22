@@ -1,62 +1,65 @@
-kitchen_upper_cabinet_lights:
-  unique_id: kitchen_upper_cabinet_lights
-  friendly_name: "Kitchen Upper Cabinet Lights"
-
-  value_template: "{{ state_attr('light.kitchen_cabinet_upper_original', 'brightness') | int > 0 }}"
-  level_template: "{{ state_attr('light.kitchen_cabinet_upper_original', 'brightness') | int }}"
-
-  # Advertise full 2000–6500 K
-  min_mireds_template: 154
-  max_mireds_template: 500
-
-  # Show real mapped CT when in CT mode; otherwise show 2700K (370 mireds)
-  temperature_template: >-
-    {% set src = 'light.kitchen_cabinet_upper_original' %}
-    {% if state_attr(src, 'color_mode') == 'color_temp' and state_attr(src, 'color_temp') is not none %}
-      {{ ((state_attr(src,'color_temp')|float - 158.0) / (495.0 - 158.0) * (370.0 - 154.0) + 154.0) | round(0) | int }}
-    {% else %}
-      370
-    {% endif %}
-
-  hs_template: >-
-    {% set hs = state_attr('light.kitchen_cabinet_upper_original','hs_color') %}
-    {% if hs is sequence and hs|length == 2 %}
-      ({{ (hs[0] | float) | round(1) }}, {{ (hs[1] | float) | round(1) }})
-    {% else %}
-      (0, 0)
-    {% endif %}
-
-  turn_on:
-    service: light.turn_on
-    target:
-      entity_id: light.kitchen_cabinet_upper_original
-
-  turn_off:
-    service: light.turn_off
-    target:
-      entity_id: light.kitchen_cabinet_upper_original
-
-  set_level:
-    service: light.turn_on
-    target:
-      entity_id: light.kitchen_cabinet_upper_original
-    data:
-      brightness: "{{ brightness }}"
-
-  set_temperature:
-    service: script.apply_kelvin_map
-    data:
-      entity: light.kitchen_cabinet_upper_original
-      ui_mired: "{{ color_temp }}"
-      transition: "{{ (transition | default(0)) | float }}"
-
-  set_hs:
-    service: light.turn_on
-    target:
-      entity_id: light.kitchen_cabinet_upper_original
-    data:
-      hs_color:
-        - "{{ h }}"
-        - "{{ s }}"
-
-  supports_transition_template: "{{ true }}"
+light:
+  - platform: template
+    lights:
+      kitchen_upper_cabinet_lights:
+        unique_id: kitchen_upper_cabinet_lights
+        friendly_name: "Kitchen Upper Cabinet Lights"
+      
+        value_template: "{{ state_attr('light.kitchen_cabinet_upper_original', 'brightness') | int > 0 }}"
+        level_template: "{{ state_attr('light.kitchen_cabinet_upper_original', 'brightness') | int }}"
+      
+        # Advertise full 2000–6500 K
+        min_mireds_template: 154
+        max_mireds_template: 500
+      
+        # Show real mapped CT when in CT mode; otherwise show 2700K (370 mireds)
+        temperature_template: >-
+          {% set src = 'light.kitchen_cabinet_upper_original' %}
+          {% if state_attr(src, 'color_mode') == 'color_temp' and state_attr(src, 'color_temp') is not none %}
+            {{ ((state_attr(src,'color_temp')|float - 158.0) / (495.0 - 158.0) * (370.0 - 154.0) + 154.0) | round(0) | int }}
+          {% else %}
+            370
+          {% endif %}
+      
+        hs_template: >-
+          {% set hs = state_attr('light.kitchen_cabinet_upper_original','hs_color') %}
+          {% if hs is sequence and hs|length == 2 %}
+            ({{ (hs[0] | float) | round(1) }}, {{ (hs[1] | float) | round(1) }})
+          {% else %}
+            (0, 0)
+          {% endif %}
+      
+        turn_on:
+          service: light.turn_on
+          target:
+            entity_id: light.kitchen_cabinet_upper_original
+      
+        turn_off:
+          service: light.turn_off
+          target:
+            entity_id: light.kitchen_cabinet_upper_original
+      
+        set_level:
+          service: light.turn_on
+          target:
+            entity_id: light.kitchen_cabinet_upper_original
+          data:
+            brightness: "{{ brightness }}"
+      
+        set_temperature:
+          service: script.apply_kelvin_map
+          data:
+            entity: light.kitchen_cabinet_upper_original
+            ui_mired: "{{ color_temp }}"
+            transition: "{{ (transition | default(0)) | float }}"
+      
+        set_hs:
+          service: light.turn_on
+          target:
+            entity_id: light.kitchen_cabinet_upper_original
+          data:
+            hs_color:
+              - "{{ h }}"
+              - "{{ s }}"
+      
+        supports_transition_template: "{{ true }}"
