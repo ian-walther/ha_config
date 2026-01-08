@@ -578,55 +578,24 @@ tv_kitchen_chromecast:
 tv_living_room_turn_on:
   alias: tv-all-on
   sequence:
-  - if:
-    - condition: and
-      conditions:
-      - condition: state
-        entity_id: switch.samsung_the_frame_43
-        state: 'off'
-      - condition: state
-        entity_id: switch.samsung_the_frame_75
-        state: 'off'
-    then:
-    - action: switch.turn_on
-      metadata: {}
-      data: {}
-      target:
-        entity_id:
-        - switch.samsung_the_frame_43
-        - switch.samsung_the_frame_75
-    else:
-    - if:
-      - condition: state
-        entity_id: switch.samsung_the_frame_43
-        state: 'off'
-      then:
-      - action: switch.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: switch.samsung_the_frame_43
-    - if:
-      - condition: state
-        entity_id: switch.samsung_the_frame_75
-        state: 'off'
-      then:
-      - action: switch.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: switch.samsung_the_frame_75
+  - action: switch.turn_on
+    metadata: {}
+    target:
+      entity_id:
+      - switch.kitchen_tv_plug
+      - switch.living_room_tv_plug
+    data: {}
   description: ''
 tv_turn_all_off:
   alias: tv-all-off
   sequence:
   - action: switch.turn_off
     metadata: {}
-    data: {}
     target:
       entity_id:
-      - switch.samsung_the_frame_43
-      - switch.samsung_the_frame_75
+      - switch.kitchen_tv_plug
+      - switch.living_room_tv_plug
+    data: {}
   description: ''
 tv_house_respond_to_change_2:
   alias: tv-house-respond_to_change
@@ -700,19 +669,22 @@ house_respond_to_change:
       - sequence:
         - action: input_select.select_option
           metadata: {}
-          data:
-            option: Auto
           target:
-            entity_id: input_select.main_floor_lighting_mode
+            entity_id: input_select.main_floor_scene
+          data:
+            option: Morning Auto
         - action: input_select.select_option
           metadata: {}
+          target:
+            entity_id: input_select.master_bedroom_scene
+          data:
+            option: All Auto
+        - action: input_select.select_option
+          metadata: {}
+          target:
+            entity_id: input_select.hallway_scene
           data:
             option: Auto
-          target:
-            entity_id: input_select.hallway_lighting_mode
-        - action: script.main_floor_morning_auto
-          metadata: {}
-          data: {}
         - action: switch.turn_off
           metadata: {}
           data: {}
@@ -726,27 +698,25 @@ house_respond_to_change:
           target:
             entity_id:
             - switch.adaptive_lighting_sleep_mode_master_bathroom
-        - action: switch.turn_off
-          metadata: {}
-          data: {}
-          target:
-            entity_id: switch.adaptive_lighting_sleep_mode_master_sitting_area
       - action: script.tv_living_room_turn_on
         metadata: {}
         data: {}
-        enabled: false
+        enabled: true
     else:
     - parallel:
       - sequence:
         - action: input_select.select_option
           metadata: {}
-          data:
-            option: Sleep
           target:
-            entity_id: input_select.hallway_lighting_mode
-        - action: script.main_floor_off
+            entity_id: input_select.main_floor_scene
+          data:
+            option: 'Off'
+        - action: input_select.select_option
           metadata: {}
-          data: {}
+          target:
+            entity_id: input_select.master_bedroom_scene
+          data:
+            option: Bedtime
         - action: switch.turn_on
           metadata: {}
           data: {}
@@ -754,12 +724,6 @@ house_respond_to_change:
             entity_id:
             - switch.kitchen_air_cleaner_switch
             - switch.living_room_air_cleaner_switch
-        - action: switch.turn_on
-          metadata: {}
-          data: {}
-          target:
-            entity_id:
-            - switch.adaptive_lighting_sleep_mode_master_bathroom
         - action: light.turn_off
           metadata: {}
           data:
@@ -769,7 +733,7 @@ house_respond_to_change:
       - action: script.tv_turn_all_off
         metadata: {}
         data: {}
-        enabled: false
+        enabled: true
   alias: house-respond_to_change
   description: ''
 apply_kelvin_map:
@@ -832,22 +796,44 @@ apply_kelvin_map:
         - '{{ y | float }}'
         brightness: '{{ b_out }}'
         transition: '{{ t_numeric }}'
-tv_kitchen_turn_on:
+asdf:
   sequence:
-  - action: opnsense.send_wol
-    metadata: {}
-    data:
-      interface: lan
-      mac: 10:2b:41:bf:60:56
+  - repeat:
+      count: 30
+      sequence:
+      - data:
+          mac: 10:2b:41:bf:60:56
+          broadcast_address: 192.168.1.255
+          broadcast_port: 9
+        action: wake_on_lan.send_magic_packet
+      - delay:
+          milliseconds: 100
   - delay:
-      hours: 0
-      minutes: 0
-      seconds: 3
-      milliseconds: 0
-  - action: media_player.turn_on
-    metadata: {}
-    data: {}
-    target:
+      seconds: 2
+  - target:
       entity_id: media_player.kitchen_tv
-  alias: tv-kitchen_turn_on
+    action: media_player.turn_on
+sonos_kitchen_jazz_playlist:
+  sequence:
+  - target:
+      entity_id: media_player.kitchen
+    data:
+      media:
+        media_content_id: FV:2/42
+        media_content_type: favorite_item_id
+        metadata:
+          title: Bigass Jazz Playlist
+          thumbnail: https://is1-ssl.mzstatic.com/image/thumb/gen/600x600AM.PDCXS01.jpg?c1=FFFFFF&c2=FF8080&c3=FFE6E6&c4=FA233B&signature=d1c237d4fd070ccda16b70e83969868a1a2c3c7290c6196122c09715d15f1b65&t=QmlnYXNzIEphenogUGxheWxpc3Q%3D&tc=FFFFFF&vkey=1
+          media_class: playlist
+          children_media_class:
+          navigateIds:
+          - {}
+          - media_content_type: favorites
+            media_content_id: ''
+          - media_content_type: favorites_folder
+            media_content_id: object.container.playlistContainer
+          browse_entity_id: media_player.kitchen
+    action: media_player.play_media
+  alias: sonos-kitchen-jazz_playlist
+  mode: single
   description: ''

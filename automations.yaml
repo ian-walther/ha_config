@@ -12,9 +12,12 @@
         target:
           entity_id: media_player.kitchen
       button_1_press:
-      - action: script.main_floor_full_auto
+      - action: input_select.select_option
         metadata: {}
-        data: {}
+        target:
+          entity_id: input_select.main_floor_scene
+        data:
+          option: All Auto
       turnwheel_right:
       - action: media_player.volume_up
         metadata: {}
@@ -22,17 +25,26 @@
         target:
           entity_id: media_player.kitchen
       button_2_press:
-      - action: script.main_floor_morning_auto
+      - action: input_select.select_option
         metadata: {}
-        data: {}
+        target:
+          entity_id: input_select.main_floor_scene
+        data:
+          option: All Bright
       button_3_press:
-      - action: script.main_floor_off
+      - action: input_select.select_option
         metadata: {}
-        data: {}
+        target:
+          entity_id: input_select.main_floor_scene
+        data:
+          option: 'Off'
       button_4_press:
-      - action: script.main_floor_evening_auto
+      - action: input_select.select_option
         metadata: {}
-        data: {}
+        target:
+          entity_id: input_select.main_floor_scene
+        data:
+          option: Evening Auto
 - id: '1706041717555'
   alias: Master Closet Door Open
   description: ''
@@ -796,40 +808,35 @@
     input:
       pico_remote: b5f80d3b2641f8d09de1a58d373f7cbf
       top_on:
-      - action: light.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: light.hallway
-      bottom_off:
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id: light.hallway
-      middle_stop:
       - action: input_select.select_option
         metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
         data:
           option: Auto
+      bottom_off:
+      - action: input_select.select_option
+        metadata: {}
         target:
-          entity_id: input_select.hallway_lighting_mode
+          entity_id: input_select.hallway_scene
+        data:
+          option: 'Off'
+      middle_stop: []
       top_on_release: []
       down_lower:
       - action: input_select.select_option
         metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
         data:
           option: Sleep
-        target:
-          entity_id: input_select.hallway_lighting_mode
       up_raise:
       - action: input_select.select_option
         metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
         data:
           option: Bright
-        target:
-          entity_id: input_select.hallway_lighting_mode
 - id: '1741203656368'
   alias: Master Bath Door Opened
   description: ''
@@ -1355,48 +1362,6 @@
     target:
       entity_id: light.basement_main_lights
   mode: single
-- id: '1760149381822'
-  alias: 'Hallway Pico: Guest Rooms'
-  description: ''
-  use_blueprint:
-    path: lutron-pico.yaml
-    input:
-      pico_remote: 4be64a5d963440f5c7724ddc3a12625b
-      top_on:
-      - action: light.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: light.hallway
-      bottom_off:
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id: light.hallway
-      middle_stop:
-      - action: input_select.select_option
-        metadata: {}
-        data:
-          option: Auto
-        target:
-          entity_id: input_select.hallway_lighting_mode
-      top_on_release: []
-      down_lower:
-      - action: input_select.select_option
-        metadata: {}
-        data:
-          option: Sleep
-        target:
-          entity_id: input_select.hallway_lighting_mode
-      up_raise:
-      - action: input_select.select_option
-        metadata: {}
-        data:
-          option: Bright
-        target:
-          entity_id: input_select.hallway_lighting_mode
 - id: '1760149463892'
   alias: 'Hallway Pico: Living Room'
   description: ''
@@ -1405,40 +1370,35 @@
     input:
       pico_remote: fb0faded3be34e155f39d1c73f57e643
       top_on:
-      - action: light.turn_on
-        metadata: {}
-        data: {}
-        target:
-          entity_id: light.hallway
-      bottom_off:
-      - action: light.turn_off
-        metadata: {}
-        data:
-          transition: 2
-        target:
-          entity_id: light.hallway
-      middle_stop:
       - action: input_select.select_option
         metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
         data:
           option: Auto
+      bottom_off:
+      - action: input_select.select_option
+        metadata: {}
         target:
-          entity_id: input_select.hallway_lighting_mode
+          entity_id: input_select.hallway_scene
+        data:
+          option: 'Off'
+      middle_stop: []
       top_on_release: []
       down_lower:
       - action: input_select.select_option
         metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
         data:
           option: Sleep
-        target:
-          entity_id: input_select.hallway_lighting_mode
       up_raise:
       - action: input_select.select_option
         metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
         data:
           option: Bright
-        target:
-          entity_id: input_select.hallway_lighting_mode
 - id: '1763506450396'
   alias: Kitchen Accent Pico
   description: ''
@@ -1540,3 +1500,40 @@
     entity_id: 8a4a20d74379ad8951b8c20e59e2694d
     domain: light
   mode: single
+- id: '1767547712068'
+  alias: 'Hallway Pico: Guest Rooms'
+  description: ''
+  use_blueprint:
+    path: lutron-pico.yaml
+    input:
+      pico_remote: 4be64a5d963440f5c7724ddc3a12625b
+      top_on:
+      - action: input_select.select_option
+        metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
+        data:
+          option: Auto
+      bottom_off:
+      - action: input_select.select_option
+        metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
+        data:
+          option: 'Off'
+      middle_stop: []
+      top_on_release: []
+      down_lower:
+      - action: input_select.select_option
+        metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
+        data:
+          option: Sleep
+      up_raise:
+      - action: input_select.select_option
+        metadata: {}
+        target:
+          entity_id: input_select.hallway_scene
+        data:
+          option: Bright

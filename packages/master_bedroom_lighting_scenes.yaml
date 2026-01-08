@@ -1,0 +1,111 @@
+input_select:
+  master_bedroom_scene:
+    name: Master Bedroom Scene
+    options:
+      - "All Auto"
+      - "All Bright"
+      - "Chill"
+      - "Bedtime"
+      - "Off"
+
+automation:
+  - alias: "Master Bedroom Scene Controller"
+    id: master_bedroom_scene_controller
+    trigger:
+      - platform: state
+        entity_id: input_select.master_bedroom_scene
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_select.master_bedroom_scene
+                state: "All Auto"
+            sequence:
+              - service: script.master_bedroom_all_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.master_bedroom_scene
+                state: "All Bright"
+            sequence:
+              - service: script.master_bedroom_all_bright
+          - conditions:
+              - condition: state
+                entity_id: input_select.master_bedroom_scene
+                state: "Chill"
+            sequence:
+              - service: script.master_bedroom_chill
+          - conditions:
+              - condition: state
+                entity_id: input_select.master_bedroom_scene
+                state: "Bedtime"
+            sequence:
+              - service: script.master_bedroom_bedtime
+          - conditions:
+              - condition: state
+                entity_id: input_select.master_bedroom_scene
+                state: "Off"
+            sequence:
+              - service: script.master_bedroom_off
+
+script:
+  master_bedroom_all_auto:
+    alias: "master_bedroom_all_auto"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: master_sitting_area
+        light_pool:
+          label_id: master_bedroom_lights_pool
+        lights_on:
+          - light.master_bedroom_ceiling
+          - light.master_bedroom_lamps
+          - light.master_sitting_area
+        override_enabled: false
+  master_bedroom_all_bright:
+    alias: "master_bedroom_all_bright"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: master_sitting_area
+        light_pool:
+          label_id: master_bedroom_lights_pool
+        lights_on:
+          - light.master_bedroom_ceiling
+          - light.master_bedroom_lamps
+          - light.master_sitting_area
+        override_enabled: true
+        override_brightness: 100
+        override_temperature: 3500
+  master_bedroom_chill:
+    alias: "master_bedroom_chill"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: master_sitting_area
+        light_pool:
+          label_id: master_bedroom_lights_pool
+        lights_on:
+          - light.master_bedroom_lamps
+          - light.master_sitting_area
+        override_enabled: false
+  master_bedroom_bedtime:
+    alias: "master_bedroom_bedtime"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: master_sitting_area
+        light_pool:
+          label_id: master_bedroom_lights_pool
+        lights_on:
+          - light.master_bedroom_lamps
+        override_enabled: false
+  master_bedroom_off:
+    alias: "master_bedroom_off"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: master_sitting_area
+        light_pool:
+          label_id: master_bedroom_lights_pool
+        lights_on:
+        override_enabled: false

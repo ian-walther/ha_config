@@ -1,0 +1,90 @@
+input_select:
+  hallway_scene:
+    name: Hallway Scene
+    options:
+      - "Bright"
+      - "Auto"
+      - "Sleep"
+      - "Off"
+
+automation:
+  - alias: "Hallway Scene Controller"
+    id: hallway_scene_controller
+    trigger:
+      - platform: state
+        entity_id: input_select.hallway_scene
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_select.hallway_scene
+                state: "Bright"
+            sequence:
+              - service: script.hallway_bright
+          - conditions:
+              - condition: state
+                entity_id: input_select.hallway_scene
+                state: "Auto"
+            sequence:
+              - service: script.hallway_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.hallway_scene
+                state: "Sleep"
+            sequence:
+              - service: script.hallway_sleep
+          - conditions:
+              - condition: state
+                entity_id: input_select.hallway_scene
+                state: "Off"
+            sequence:
+              - service: script.hallway_off
+
+script:
+  hallway_bright:
+    alias: "hallway_bright"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: upstairs_hallway
+        light_pool:
+          label_id: hallway_lights_pool
+        lights_on:
+          - light.hallway
+        override_enabled: true
+        override_brightness: 100
+        override_temperature: 4000
+  hallway_auto:
+    alias: "hallway_auto"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: upstairs_hallway
+        light_pool:
+          label_id: hallway_lights_pool
+        lights_on:
+          - light.hallway
+        override_enabled: false
+  hallway_sleep:
+    alias: "hallway_sleep"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: upstairs_hallway
+        light_pool:
+          label_id: hallway_lights_pool
+        lights_on:
+          - light.hallway
+        override_enabled: true
+        override_brightness: 20
+        override_temperature: 2000
+  hallway_off:
+    alias: "hallway_off"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: upstairs_hallway
+        light_pool:
+          label_id: hallway_lights_pool
+        lights_on:
+        override_enabled: false

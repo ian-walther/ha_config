@@ -2,10 +2,11 @@ input_select:
   studio_scene:
     name: Studio Scene
     options:
-      - "Full Bright"
-      - "Late Night"
       - "All Auto"
+      - "All Bright"
+      - "Simracing"
       - "Lamps Auto"
+      - "Late Night"
       - "Off"
 
 automation:
@@ -19,15 +20,21 @@ automation:
           - conditions:
               - condition: state
                 entity_id: input_select.studio_scene
-                state: "Full Bright"
+                state: "All Bright"
             sequence:
-              - service: script.studio_full_bright
+              - service: script.studio_all_bright
           - conditions:
               - condition: state
                 entity_id: input_select.studio_scene
                 state: "Late Night"
             sequence:
               - service: script.studio_late_night
+          - conditions:
+              - condition: state
+                entity_id: input_select.studio_scene
+                state: "Simracing"
+            sequence:
+              - service: script.studio_simracing
           - conditions:
               - condition: state
                 entity_id: input_select.studio_scene
@@ -48,8 +55,8 @@ automation:
               - service: script.studio_off
 
 script:
-  studio_full_bright:
-    alias: "studio_full_bright"
+  studio_all_bright:
+    alias: "script.studio_all_bright"
     use_blueprint:
       path: homeassistant/lighting_scene_controller.yaml
       input:
@@ -62,6 +69,20 @@ script:
         override_enabled: true
         override_brightness: 100
         override_temperature: 3500
+  studio_simracing:
+    alias: "studio_simracing"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: studio
+        light_pool:
+          label_id: studio_lights_pool
+        lights_on:
+          - light.studio_ceiling
+          - light.studio_lamps
+        override_enabled: true
+        override_brightness: 100
+        override_temperature: 2700
   studio_late_night:
     alias: "studio_late_night"
     use_blueprint:

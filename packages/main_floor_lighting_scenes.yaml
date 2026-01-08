@@ -2,10 +2,11 @@ input_select:
   main_floor_scene:
     name: Main Floor Scene
     options:
-      - "Full Bright"
-      - "Full Auto"
+      - "All Bright"
+      - "All Auto"
       - "Morning Auto"
       - "Evening Auto"
+      - "Night Auto"
       - "Off"
 
 automation:
@@ -19,13 +20,13 @@ automation:
           - conditions:
               - condition: state
                 entity_id: input_select.main_floor_scene
-                state: "Full Bright"
+                state: "All Bright"
             sequence:
               - service: script.main_floor_full_bright
           - conditions:
               - condition: state
                 entity_id: input_select.main_floor_scene
-                state: "Full Auto"
+                state: "All Auto"
             sequence:
               - service: script.main_floor_full_auto
           - conditions:
@@ -40,6 +41,12 @@ automation:
                 state: "Evening Auto"
             sequence:
               - service: script.main_floor_evening_auto
+          - conditions:
+              - condition: state
+                entity_id: input_select.main_floor_scene
+                state: "Night Auto"
+            sequence:
+              - service: script.main_floor_night_auto
           - conditions:
               - condition: state
                 entity_id: input_select.main_floor_scene
@@ -149,6 +156,25 @@ script:
           - light.living_room_lamps
           - light.office_display_cabinet_light
           - light.office_lamps
+        override_enabled: false
+        per_call_delay_ms: 150
+        jitter_ms: 38
+        confirm_timeout_s: 0.6
+  main_floor_night_auto:
+    alias: "main_floor_night_auto"
+    use_blueprint:
+      path: homeassistant/lighting_scene_controller.yaml
+      input:
+        zone_name: main_floor
+        light_pool:
+          label_id: main_floor_lights_pool
+        lights_on:
+          - light.bar_lower_accent_light
+          - light.dining_table_light
+          - light.kitchen_lower_cabinet_lights
+          - light.kitchen_pendant_lights
+          - light.living_room_cabinet_light
+          - light.living_room_lamps
         override_enabled: false
         per_call_delay_ms: 150
         jitter_ms: 38
